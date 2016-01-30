@@ -1,0 +1,2 @@
+<*.ml>: thread,package(unix),package(threads),package(str)
+<*.native>: thread,package(unix),package(threads)
