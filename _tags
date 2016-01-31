@@ -1,2 +1,3 @@
 <*.ml>: thread,package(unix),package(threads),package(str)
-<*.native>: thread,package(unix),package(threads)
+<*.native>: thread,package(unix),package(threads),package(str)
+"displayGLUT.ml" or "control.native" : package(lablgl)
