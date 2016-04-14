@@ -9,15 +9,17 @@ let ro = (
   else dummy_roomba ())
 
 
-let print_answer fd = 
+let print_answer fd ro = 
   let s = "HTTP/1.1 200 OK\nContent-Type: text/html\nConnnection: close\n\n"
   in let  s2 = s^"<HTML><a href='Avance'>Avance</a><br><a href='Stop'>Stop</a><br><a href=Recule>Recule</a> <br><a href=Safe>Safe</a> 
-<br><a href=Droite>Droite</a> </HTML>" in
-  ignore (Unix.write fd s2 0 (String.length s2))
+<br><a href=Droite>Droite</a><br>" in
+     let s3 = s2 ^ ( string_of_available_data ro) ^ "</HTML>"
+     in
+  ignore (Unix.write fd s3 0 (String.length s3))
 
 
 let serv fd =
-  let str = String.create 1024 in
+  let str = Bytes.create 1024 in
   ignore (read fd str 0 1024);
   let nslash = String.index str '/' in
   let str2 = String.sub str nslash (String.length str - nslash) in
@@ -35,7 +37,9 @@ let serv fd =
     | _ -> print_endline "action non reconnu"
   end;
 
-  print_answer fd;
+  query_list ro [1;2;3;43;44;45;106];
+  
+  print_answer fd (get_state ro);
   close fd;;
 
 
