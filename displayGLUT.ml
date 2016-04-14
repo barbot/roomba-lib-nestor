@@ -199,5 +199,6 @@ let init kb jo ms ro =
   Glut.motionFunc ~cb:(mouseMotion);
 (*  Glut.passiveMotionFunc ~cb:mouvmouse;*)
   Glut.joystickFunc ~cb:(joystick ro jo) ~pollInterval:200;
-  Roomba_ams.start (ms ro);
+  try ignore (Roomba_ams.start (ms ro)) with
+    _ -> print_endline "AMS did not start";
   Glut.mainLoop ()

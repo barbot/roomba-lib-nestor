@@ -36,7 +36,7 @@ let new_roomba inchan outchan =
     print_endline "New connection";
     let roomba_dev = input_value inchan in
     print_endline ("Connecting to roomba on: "^roomba_dev);
-    let roomba = if roomba_dev = "" then dummy_roomba ()
+    let roomba = if roomba_dev = "" then init_roomba "/dev/ttyAMA0"
       else init_roomba roomba_dev in
     output_value outchan None;
     flush outchan;

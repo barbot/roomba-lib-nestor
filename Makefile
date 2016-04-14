@@ -1,8 +1,10 @@
 OCAMLB=ocamlbuild
 TARGET=control
 OCAMLCP=ocamlcp
-LIB=-I,+lablgl,-I,+threads
-LIBS=str,unix,threads,lablgl,lablglut
+LIB=-I,+threads
+#-I,+lablgl,
+LIBS=str,unix,threads
+#,lablgl,lablglut
 OCAMLBUILDFLAGS=-use-ocamlfind -libs $(LIBS) -lflags $(LIB) -cflags $(LIB)
 OCAMLBUILDFLAGS2=-libs str,unix,threads,graphics -lflags $(LIB) -cflags $(LIB)
 LIBOPT=-noassert,-unsafe

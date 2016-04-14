@@ -20,27 +20,27 @@ let string_of_state = function
 
 let innerstate = ref Stop;;
 
-
-let changestate ro s =
-  if !innerstate = s then () 
-  else begin
-    innerstate := s;
-    match s with
-    | Stop -> roomba_cmd ro (Drive (0,0))
-    | Avance -> roomba_cmd ro (Drive (70,0))
-    | Droite -> roomba_cmd ro (Drive (50,-1))
-    | Gauche -> roomba_cmd ro (Drive (50,1))
-    | AvantDroit1 -> roomba_cmd ro (Drive (70,-800))
-    | AvantDroit2 -> roomba_cmd ro (Drive (70,-300))
-    | Suiveur x-> roomba_cmd ro (DriveDirect (70+x,70-x));
-  end
-
 let nestor = (
   if Array.length Sys.argv >1 then
     Unix.handle_unix_error  init_roomba Sys.argv.(1)
   else dummy_roomba ());;
 
 let nestor_consigne = start_consigne nestor;;
+
+let changestate ro s =
+  if !innerstate = s then () 
+  else begin
+    innerstate := s;
+    match s with
+    | Stop ->  change_consigne nestor_consigne 0 0
+    | Avance ->  change_consigne nestor_consigne 70 70
+    | Droite ->  change_consigne nestor_consigne 50 (-50)
+    | Gauche ->  change_consigne_urgent nestor_consigne (-50) (50)
+    | AvantDroit1 ->  change_consigne nestor_consigne 70 60
+    | AvantDroit2 ->  change_consigne nestor_consigne 70 40
+    | Suiveur x->  change_consigne nestor_consigne (70+x) (70-x);
+  end
+
 
 let jo ro fx fy _ = 
   if !joystick then 
@@ -60,7 +60,7 @@ let kb ro = function
       end
     | 'm' -> roomba_cmd ro (Motors 7)
     | 'l' -> roomba_cmd ro (Motors 0)
-    | 's' -> sync_state ro [1;2;3;43;44;106];
+    | 's' -> sync_state ro [1;2;3;43;44;45;106];
       print_endline "Sync"
     | 'q' -> stop_sync ro;
     | 'p' -> roomba_cmd ro Clean; 
@@ -81,7 +81,9 @@ let kb ro = function
 
 
     | 'e' -> explore := not !explore;
-      changestate ro Stop
+      print_endline "Exploration mode";
+      changestate ro Avance; 
+      (*changestate ro Stop*)
     | 'j' -> joystick := not !joystick
     | 'k' -> ams := not ! ams
       
@@ -120,14 +122,18 @@ let explorefun ro st =
       
 let explorefun2 ro st =
   let v = (270 - (getDataOrDie st.lightBumpRight))/5 in
+  change_consigne nestor_consigne (70+v) (70-v)
+  (*
   roomba_cmd ro (DriveDirect (70+v,70-v));
-  Printf.sprintf "DriveDirect %i,%i\n" (70+v) (70-v)
+  Printf.sprintf "DriveDirect %i,%i\n" (70+v) (70-v)*)
 
 let callback ro st =
   smooth_sensors st;
   let order =
     if !explore then try explorefun ro st; "Explore\n" with 
-      | Data_not_available -> changestate ro Stop; "\n"
+      | Data_not_available -> 
+	print_endline "Some data are not available";
+	changestate ro Stop; "\n"
     else "\n"
   in
   callbackfun (order^(string_of_state !innerstate)^"\n") st;;

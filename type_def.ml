@@ -82,7 +82,7 @@ type roomba_state = {
   mutable sideBrushMotorCurrent: int option;
   mutable stasis: bool option;
 
-  hidden: smooth_value;
+  mutable hidden: smooth_value;
 }
 
 
@@ -329,28 +329,29 @@ let clear_state s =
 
 
 let integre sx y = match sx with
-  | None -> y,None
+  | None -> None,y
   | Some x ->
-    let a = 0.9 in
-    ((float x) +. a*. y) ,
-    (Some (int_of_float (y*. (1.-. a))))
+    let a = 0.8 in
+    (Some (int_of_float (y *. (1.-. a)))
+       , (float x) +. a*. y) 
+    
 
 let smooth_sensors st =
   let x,y = integre st.lightBumpLeft st.hidden.lightBumpLeftSm in
-  st.lightBumpLeft <- y; 
-  st.hidden.lightBumpLeftSm <- x;
+  st.lightBumpLeft <- x; 
+  st.hidden.lightBumpLeftSm <- y;
   let x,y = integre st.lightBumpFrontLeft st.hidden.lightBumpFrontLeftSm in
-  st.lightBumpFrontLeft <- y;
-  st.hidden.lightBumpFrontLeftSm <- x;
+  st.lightBumpFrontLeft <- x;
+  st.hidden.lightBumpFrontLeftSm <- y;
   let x,y = integre st.lightBumpCenterLeft st.hidden.lightBumpCenterLeftSm in
-  st.lightBumpCenterLeft <- y;
-  st.hidden.lightBumpCenterLeftSm <- x;
+  st.lightBumpCenterLeft <- x;
+  st.hidden.lightBumpCenterLeftSm <- y;
   let x,y = integre st.lightBumpRight st.hidden.lightBumpRightSm in
-  st.lightBumpRight <- y; 
-  st.hidden.lightBumpRightSm <- x;
+  st.lightBumpRight <- x; 
+  st.hidden.lightBumpRightSm <- y;
   let x,y = integre st.lightBumpFrontRight st.hidden.lightBumpFrontRightSm in
-  st.lightBumpFrontRight <- y;
-  st.hidden.lightBumpFrontRightSm <- x;
+  st.lightBumpFrontRight <- x;
+  st.hidden.lightBumpFrontRightSm <- y;
   let x,y = integre st.lightBumpCenterRight st.hidden.lightBumpCenterRightSm in
-  st.lightBumpCenterRight <- y;
-  st.hidden.lightBumpCenterRightSm <- x
+  st.lightBumpCenterRight <- x;
+  st.hidden.lightBumpCenterRightSm <- y

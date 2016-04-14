@@ -51,7 +51,7 @@ type roomba_state = {
   mutable mainBrushMotorCurrent: int option;
   mutable sideBrushMotorCurrent: int option;
   mutable stasis: bool option;
-  hidden : smooth_value;
+  mutable hidden : smooth_value;
 }
 
 

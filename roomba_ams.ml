@@ -26,6 +26,7 @@ let rec ams_loop s =
 
 let start f =
   let mouv = Unix.open_process_in "./AMSTracker -u 0.25 -s" in
+  let _ = input_line mouv in
   let track = {
     amsProc = mouv;
     stop_flag = false;

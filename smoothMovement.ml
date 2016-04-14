@@ -1,6 +1,6 @@
 
-let max_change = 10.0
-let time_change = 0.100
+let max_change = 2.0
+let time_change = 0.01
 
 type roomba_mouv = {
   roomba: Interface.roomba;
@@ -34,8 +34,6 @@ let send_consigne rm =
     rm.last_left <- rm.last_left + int_of_float (cl *. p);
   end ;
   rm.last_time <- t2;
-  Printf.printf "command: %i %i consigne: %i %i maxm: %f clr:%f" rm.last_left rm.last_right rm.consigne_left rm.consigne_right maxm clr;
-  print_newline ();
   Interface.roomba_cmd rm.roomba (Type_def.DriveDirect (rm.last_left,rm.last_right));
   Mutex.unlock rm.mutex
    

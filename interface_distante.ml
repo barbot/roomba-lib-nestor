@@ -66,6 +66,7 @@ let sync_state ro l =
   ro.stop_flag<-false;
   let rec sync () = 
     let t = input_value ro.in_chan in
+    t.hidden <- ro.state.hidden;
     if ro.stop_flag then ()
     else begin
       ro.state <- t;
