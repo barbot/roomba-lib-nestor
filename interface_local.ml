@@ -108,8 +108,8 @@ let open_connection s =
     serial
     Unix.TCSANOW
     {term with 
-      Unix.c_ibaud = 115200 ;
-      Unix.c_obaud = 115200 ;
+Unix.c_ibaud =  115200 ;
+Unix.c_obaud =  115200 ;
 
       Unix.c_icanon = false;
       Unix.c_echo = false;
@@ -145,7 +145,7 @@ let open_connection s =
     (*  Unix.c_hupcl = false;*)
       
       };
-  fireflyfastmode serial;
+  (*fireflyfastmode serial;*)
   serial
 
 exception Wrong_checksum
