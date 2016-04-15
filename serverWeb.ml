@@ -2,6 +2,7 @@ open Unix
 open Type_def
 open Interface
 
+let endline = Str.regexp "\\\n"
 
 let ro = (
   if Array.length Sys.argv >2 then
@@ -13,9 +14,9 @@ let print_answer fd ro =
   let s = "HTTP/1.1 200 OK\nContent-Type: text/html\nConnnection: close\n\n"
   and s2 = "<HTML><a href='Avance'>Avance</a><br><a href='Stop'>Stop</a><br><a href=Recule>Recule</a> <br><a href=Safe>Safe</a> 
 <br><a href=Droite>Droite</a><br>"
-  and s3 = "<br>" ^(  List.fold_left (fun x y -> y ("<br>"^x)) "" (Type_def.print_list ro) )
+  and s3 = Str.global_replace endline (string_of_available_data ro) "<br>\n"
      in
-     let webpage = Printf.sprintf "%s%s%s</HTML>" s s2 s3 in
+     let webpage = Printf.sprintf "%s%s<br>%s</HTML>" s s2 s3 in
   ignore (Unix.write fd webpage 0 (String.length webpage))
 
 let serv fd =
