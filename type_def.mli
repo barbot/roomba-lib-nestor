@@ -93,6 +93,7 @@ val clear_state : roomba_state -> unit
 
 val getDataOrDie : 'a option -> 'a
 
+val print_list : roomba_state -> ( string -> string ) list 
 val string_of_available_data : roomba_state -> string
 val update_time : roomba_state -> unit
 val freq : roomba_state -> float
