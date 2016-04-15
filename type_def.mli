@@ -75,7 +75,8 @@ type cmd =
   | PauseStream of bool
   (** This command should not be used directly use [sync_state] and [stop_sync] instead.*)   
   | QueryList of int list
-(** This command should not be used directly use [query_list] instead.*)  
+(** This command should not be used directly use [query_list] instead.*)
+  | WakeUp
 
 
 exception Invalid_Packet of int

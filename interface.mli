@@ -14,7 +14,7 @@ specifying a serial port connected to the roomba or at distance
 by connecting to a roomba server*)
 val init_roomba : string -> roomba
 
-
+  
 val roomba_cmd : roomba -> Type_def.cmd -> unit
 val close_roomba : roomba -> unit
 val clear_input : roomba -> unit

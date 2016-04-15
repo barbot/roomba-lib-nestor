@@ -103,6 +103,7 @@ type cmd =
   | Stream of int list
   | PauseStream of bool
   | QueryList of int list
+  | WakeUp
 
 let print_ioption s2 op s = match op with
   | None -> s

@@ -29,8 +29,8 @@ let get_state ro =
 let debug = false
 
 let soc i =
-  let s = "a" in
-  s.[0] <- char_of_int i;
+  let s = Bytes.create 1 in
+  Bytes.set s 0 (char_of_int i);
   s
 
 let convertbyte x =
@@ -56,6 +56,12 @@ let roomba_cmd_string = function
   | Stream l -> List.fold_left (fun x y -> Printf.sprintf "%s%c" x (char_of_int y)) ("\148"^(soc (List.length l))) l
   | QueryList l -> List.fold_left (fun x y -> Printf.sprintf "%s%c" x (char_of_int y)) ("\149"^(soc (List.length l))) l
   | PauseStream v -> Printf.sprintf "%s%c" (soc 150) (char_of_int (if v then 1 else 0))
+  | WakeUp ->
+     ignore (Sys.command "echo 0 > /sys/class/gpio/gpio4/value");
+    ignore (Unix.select [] [] [] 0.01);
+    ignore (Sys.command "echo 1 > /sys/class/gpio/gpio4/value");
+    ""
+     
 
 let roomba_cmd r cmd =
   let s = roomba_cmd_string cmd in
@@ -67,7 +73,7 @@ let rec clear_input ro =
   try 
     let (l2,_,_) = Unix.select [ro.serial] [] [] 0.0 in
     let l = ref l2 in
-    let buff = String.create 256 in
+    let buff = Bytes.create 256 in
     while !l <> [] do 
       ignore (Unix.read ro.serial buff 0 256);
       let (l2,_,_) = Unix.select [ro.serial] [] [] 0.0 in
@@ -188,7 +194,7 @@ let rec readserial serial s ofs n =
 
 let read_single_packet ro i =
   let n = Import_packet.packet_length i in
-  let s = String.create (n+1) in
+  let s = Bytes.create (n+1) in
   if debug then Printf.printf "Try to read packet %i of size %i\n" i n;
   readserial ro.serial s 0 n;
   if debug then Printf.printf "Read sucessfull\n";
@@ -209,8 +215,8 @@ let read_stream ro =
 			   print_endline "new packet");
 	 readserial ro.serial head2 0 1;
 	 let nbyte = int_of_char head2.[0] in
-	 let stream = String.create (nbyte+2) in
-	 stream.[0] <- head2.[0];
+	 let stream = Bytes.create (nbyte+2) in
+	 Bytes.set stream 0 (head2.[0]);
 	 readserial ro.serial stream 1 (nbyte+1);
 	 if debug then (print_chars stream;
 			  print_newline ());

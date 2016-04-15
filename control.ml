@@ -102,7 +102,7 @@ let exp_sign x y =
 let explorefun ro st =
   match getDataOrDie st.bumpsWheeldrops with
     | 0 -> begin match getDataOrDie st.lightBumper with
-	| lb when lb < 32 & lb > 0-> changestate ro Gauche
+	| lb when lb < 32 && lb > 0-> changestate ro Gauche
 	| lb ->
 	  let u = float (270 - (getDataOrDie st.lightBumpRight)) in
 	  let v = bound ((exp_sign u 1.5)/.100.) 50 in

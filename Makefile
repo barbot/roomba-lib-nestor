@@ -1,15 +1,13 @@
 OCAMLB=ocamlbuild
 TARGET=control
 OCAMLCP=ocamlcp
-LIB=-I,+threads
-#-I,+lablgl,
-LIBS=str,unix,threads
-#,lablgl,lablglut
+LIB=-I,+lablgl
+LIBS=lablgl,lablglut
 OCAMLBUILDFLAGS=-use-ocamlfind -libs $(LIBS) -lflags $(LIB) -cflags $(LIB)
 OCAMLBUILDFLAGS2=-libs str,unix,threads,graphics -lflags $(LIB) -cflags $(LIB)
 LIBOPT=-noassert,-unsafe
 DYNLIB=-cclib,/opt/local/lib/libgtk-x11-2.0.0.dylib,-cclib,/usr/lib/libSystem.B.dylib
-TYPE=byte
+TYPE=native
 
 .PHONY: control web server ams clean
 

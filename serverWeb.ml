@@ -28,13 +28,14 @@ let serv fd =
   print_endline str3;
   
   begin match str3 with
-    | "/Safe" -> roomba_cmd ro Safe;
-    | "/Avance" -> roomba_cmd ro (Drive (100,0))
-    | "/Stop" -> roomba_cmd ro (Drive (0,0))
-    | "/Recule" -> roomba_cmd ro (Drive (-100,0))
-    | "/Droite" -> roomba_cmd ro (Drive (100,-1))
-    | "/Gauche" -> roomba_cmd ro (Drive (100,1))
-    | _ -> print_endline "action non reconnu"
+  | "/" -> ();
+  | "/Safe" -> roomba_cmd ro Safe;
+  | "/Avance" -> roomba_cmd ro (Drive (100,0))
+  | "/Stop" -> roomba_cmd ro (Drive (0,0))
+  | "/Recule" -> roomba_cmd ro (Drive (-100,0))
+  | "/Droite" -> roomba_cmd ro (Drive (100,-1))
+  | "/Gauche" -> roomba_cmd ro (Drive (100,1))
+  | _ -> print_endline "action non reconnu"
   end;
 
   query_list ro [1;2;3;43;44;45;106];
