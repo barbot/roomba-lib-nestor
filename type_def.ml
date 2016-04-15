@@ -182,7 +182,7 @@ let print_list r = [
   print_boption "stasis" r.stasis;
 
 
-  (fun s -> Printf.sprintf "frequence:     %f\n%s" (freq r) s);
+  (fun s -> Printf.sprintf "Periode:     %f\n%s" (freq r) s);
 ]
 
 

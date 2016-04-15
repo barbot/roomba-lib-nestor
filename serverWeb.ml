@@ -11,11 +11,12 @@ let ro = (
 
 let print_answer fd ro = 
   let s = "HTTP/1.1 200 OK\nContent-Type: text/html\nConnnection: close\n\n"
-  in let  s2 = s^"<HTML><a href='Avance'>Avance</a><br><a href='Stop'>Stop</a><br><a href=Recule>Recule</a> <br><a href=Safe>Safe</a> 
-<br><a href=Droite>Droite</a><br>" in
-     let s3 = s2 ^ ( string_of_available_data ro) ^ "</HTML>"
+  and s2 = "<HTML><a href='Avance'>Avance</a><br><a href='Stop'>Stop</a><br><a href=Recule>Recule</a> <br><a href=Safe>Safe</a> 
+<br><a href=Droite>Droite</a><br>"
+  and s3 = "<li>" (  List.fold_left (fun x y -> y x) "" (print_list ro) ) ^ "</li>"
      in
-  ignore (Unix.write fd s3 0 (String.length s3))
+     let webpage = Printf.sprintf "%s%s%s</HTML>" s s2 s3 in
+  ignore (Unix.write fd webpage 0 (String.length webpage))
 
 
 let serv fd =
