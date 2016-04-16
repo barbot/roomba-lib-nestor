@@ -12,8 +12,13 @@ let html_of_data r =
   
 let print_answer fd ro = 
   let s = "HTTP/1.1 200 OK\nContent-Type: text/html\nConnnection: close\n\n"
-  and s2 = "<HTML><a href='Avance'>Avance</a><br><a href='Stop'>Stop</a><br><a href=Recule>Recule</a> <br><a href=Safe>Safe</a> 
-<br><a href=Droite>Droite</a><br>"
+  and s2 = "<HTML>
+<a href='Avance'>Avance</a><br>
+<a href='Stop'>Stop</a><br>
+<a href=Recule>Recule</a> <br>
+<a href=Safe>Safe</a><br>
+<a href=Droite>Droite</a><br>
+<a href=WakeUp>WakeUp</a><br>"
   and s3 = Printf.sprintf "<ul>%s</ul>\n" (html_of_data ro)
      in
      let webpage = Printf.sprintf "%s%s<br>%s</HTML>" s s2 s3 in
@@ -36,6 +41,7 @@ let serv fd =
   | "/Recule" -> roomba_cmd ro (Drive (-100,0))
   | "/Droite" -> roomba_cmd ro (Drive (100,-1))
   | "/Gauche" -> roomba_cmd ro (Drive (100,1))
+  | "/WakeUp" -> roomba_cmd ro (WakeUp)
   | _ -> print_endline "action non reconnu"
   end;
 
