@@ -50,7 +50,7 @@ let skeletton bc action =
 let () =
   Nestor_app.register
     ~service:main_service
-    (fun () () -> skeletton [p [pcdata "A, B, C..."]]);
+    (fun () () -> skeletton [p [pcdata "A, B, C..."]] "/");
   List.iter (fun (n,s) ->
     Nestor_app.register
       ~service:s
