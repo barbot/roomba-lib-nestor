@@ -28,12 +28,12 @@ let actions_service_link =
 
 let html_of_data r =
   List.map (fun (n,v) ->
-    li [pcdata n ; pcdata ": "; pcdata v]  ) (Interface.print_list r)
+    li [pcdata n ; pcdata ": "; pcdata v]  ) (Interface_local.print_list r)
     
 let skeletton bc action =
-  let ro = Unix.handle_unix_error Interface.init_roomba "/dev/ttyAMA0" in
-  Interface.roomba_cmd ro WakeUp;
-  Interface.query_list ro [1;2;3;43;44;45;106];
+  let ro = Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0" in
+  Interface_local.roomba_cmd ro WakeUp;
+  Interface_local.query_list ro [1;2;3;43;44;45;106];
   
   Lwt.return
         (Eliom_tools.F.html
