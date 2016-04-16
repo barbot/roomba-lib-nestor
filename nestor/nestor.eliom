@@ -32,7 +32,7 @@ let html_of_data r =
     
 let skeletton bc action =
   let ro = Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0" in
-  Interface_local.roomba_cmd ro WakeUp;
+  Interface_local.roomba_cmd ro Type_def.WakeUp;
   Interface_local.query_list ro [1;2;3;43;44;45;106];
   
   Lwt.return
@@ -43,7 +43,7 @@ let skeletton bc action =
              h2 [pcdata "Welcome from Nestor !"];
 	     div ~a:[a_class ["action"]] actions_service_link ;
 	     div ~a:[a_class ["well"]] bc ;
-	     div ~a:[a_class ["sensor"]] (ul (html_of_data ro)) ;
+	     div ~a:[a_class ["sensor"]] [ul (html_of_data ro)] ;
            ]))
 
     
