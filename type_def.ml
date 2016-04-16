@@ -105,12 +105,12 @@ type cmd =
   | QueryList of int list
   | WakeUp
 
-let print_ioption s2 op s = match op with
-  | None -> s
-  | Some i -> s2^":     "^(string_of_int i)^"\n"^s
-let print_boption s2 op s = match op with
-  | None -> s
-  | Some i -> s2^":     "^(string_of_bool i)^"\n"^s
+let print_ioption s2 op l = match op with
+  | None -> l
+  | Some i -> (s2,(string_of_int i))::l
+let print_boption s2 op l = match op with
+  | None -> l
+  | Some i -> (s2,(string_of_bool i))::l
 
 
 let update_time r =
@@ -121,7 +121,9 @@ let freq r =
   let n = Array.length r.hidden.times in
   ((float n) /. (r.hidden.times.(r.hidden.time_index) -. r.hidden.times.((r.hidden.time_index +1) mod n)))
 
-let print_list r = [
+let print_list r =
+  List.fold_left (fun x y -> y x) []
+  [
   print_ioption "bumps Wheel drops" r.bumpsWheeldrops;
   print_boption "wall" r.wall;
   print_boption "cliff left" r.cliffLeft;
@@ -182,12 +184,12 @@ let print_list r = [
   print_boption "stasis" r.stasis;
 
 
-  (fun s -> Printf.sprintf "Periode:     %f\n%s" (freq r) s);
+  (fun l -> ("Periode",Printf.sprintf "%f" (freq r)) :: l);
 ]
 
 
 let string_of_available_data r =
-  List.fold_left (fun x y -> y x) "" (print_list r)
+  List.fold_left (fun x (n,v) -> Printf.sprintf "%s:%s\n%s" n v x  ) "" (print_list r)
 
 exception Invalid_Packet of int
 exception Data_not_available

@@ -3,8 +3,8 @@ TARGET=control
 OCAMLCP=ocamlcp
 LIB=-I,+lablgl
 LIBS=lablgl,lablglut
-OCAMLBUILDFLAGS=-use-ocamlfind -libs $(LIBS) -lflags $(LIB) -cflags $(LIB)
-OCAMLBUILDFLAGS2=-libs str,unix,threads,graphics -lflags $(LIB) -cflags $(LIB)
+OCAMLBUILDFLAGS=-use-ocamlfind
+OCAMLBUILDFLAGS2=-use-ocamlfind -libs lablgl,lablglut -lflags $(LIB) -cflags $(LIB)
 LIBOPT=-noassert,-unsafe
 DYNLIB=-cclib,/opt/local/lib/libgtk-x11-2.0.0.dylib,-cclib,/usr/lib/libSystem.B.dylib
 TYPE=native
@@ -12,7 +12,7 @@ TYPE=native
 .PHONY: control web server ams clean
 
 control: 
-	$(OCAMLB) $(OCAMLBUILDFLAGS) control.$(TYPE)
+	$(OCAMLB) $(OCAMLBUILDFLAGS2) control.$(TYPE)
 
 lib:
 	$(OCAMLB) $(OCAMLBUILDFLAGS) roomba_lib.cma
@@ -32,7 +32,7 @@ server:
 
 
 testdisplay:
-	$(OCAMLB) $(OCAMLBUILDFLAGS) testdisplay.native
+	$(OCAMLB) $(OCAMLBUILDFLAGS2) testdisplay.native
 
 clean:
 	$(OCAMLB) -clean
