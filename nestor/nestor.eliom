@@ -28,7 +28,7 @@ let actions_service_link =
 
 let html_of_data r =
   List.map (fun (n,v) ->
-    li [pcdata n ; pcdata ": "; pcdata v]  ) (Interface_local.print_list r)
+    li [pcdata n ; pcdata ": "; pcdata v]  ) (Type_def.print_list r)
     
 let skeletton bc action =
   let ro = Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0" in
