@@ -32,9 +32,10 @@ let html_of_data r =
     
 let skeletton bc action =
   let open Type_def in
-  let ro = Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0" in
-  Interface_local.roomba_cmd ro Type_def.WakeUp;
-  match action with
+  let open Interface_local in
+  let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in
+  roomba_cmd ro WakeUp;
+  begin match action with
   | "/" -> ()
   | "safe" -> roomba_cmd ro Safe
   | "start" -> roomba_cmd ro Start
@@ -49,8 +50,8 @@ let skeletton bc action =
   | "gauche" -> roomba_cmd ro (Drive (100,1))
   | "stop" -> roomba_cmd ro (Drive (0,0))
  end;
-  Interface_local.query_list ro [1;2;3;43;44;45;106];
-  Interface_local.close_roomba ro;
+  query_list ro [1;2;3;43;44;45;106];
+  close_roomba ro;
   
   Lwt.return
         (Eliom_tools.F.html
