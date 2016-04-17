@@ -34,7 +34,7 @@ let skeletton bc action =
   let open Type_def in
   let open Interface_local in
   let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in
-  roomba_cmd ro WakeUp;
+  (*roomba_cmd ro WakeUp;*)
   begin match action with
   | "/" -> ()
   | "safe" -> roomba_cmd ro Safe
