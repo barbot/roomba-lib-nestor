@@ -11,6 +11,8 @@ module Nestor_app =
       let application_name = "nestor"
     end)
 
+let ro =  Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0"
+    
 let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
@@ -33,7 +35,7 @@ let html_of_data r =
 let skeletton bc action =
   let open Type_def in
   let open Interface_local in
-  let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in
+  (*let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in*)
   (*roomba_cmd ro WakeUp;*)
   begin match action with
   | "/" -> ()
@@ -53,7 +55,7 @@ let skeletton bc action =
   query_list ro [1;2;3;43;44;45;106];
   let sensorval = html_of_data ro in
   
-  close_roomba ro;
+  (*close_roomba ro;*)
   
   Lwt.return
         (Eliom_tools.F.html
