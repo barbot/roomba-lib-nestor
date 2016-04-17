@@ -31,8 +31,24 @@ let html_of_data r =
     li [pcdata n ; pcdata ": "; pcdata v]  ) (Type_def.print_list (Interface_local.get_state r))
     
 let skeletton bc action =
+  let open Type_def in
   let ro = Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0" in
   Interface_local.roomba_cmd ro Type_def.WakeUp;
+  match action with
+  | "/" -> ()
+  | "safe" -> roomba_cmd ro Safe
+  | "start" -> roomba_cmd ro Start
+  | "power" -> roomba_cmd ro Power
+  | "spot" -> roomba_cmd ro Spot
+  | "clean" -> roomba_cmd ro Clean
+  | "max" -> roomba_cmd ro Max
+    
+  | "avance" -> roomba_cmd ro (Drive (100,0))
+  | "recule" -> roomba_cmd ro (Drive (-100,0))
+  | "droite" -> roomba_cmd ro (Drive (100,-1))
+  | "gauche" -> roomba_cmd ro (Drive (100,1))
+  | "stop" -> roomba_cmd ro (Drive (0,0))
+ end;
   Interface_local.query_list ro [1;2;3;43;44;45;106];
   Interface_local.close_roomba ro;
   
