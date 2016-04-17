@@ -66,6 +66,18 @@ let skeletton bc action =
 	     div ~a:[a_class ["action"]] actions_service_link ;
 	     div ~a:[a_class ["well"]] bc ;
 	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
+	     div ~a:[a_class ["image"]] [
+		   img ~alt:("Ocsigen Logo")
+		       ~src:(make_uri
+			       ~service:(Eliom_service.static_dir ())
+			       ["img/DSC_0983.jpg"])
+		       () ;
+		   img ~alt:("Ocsigen Logo")
+		       ~src:(make_uri
+			       ~service:(Eliom_service.static_dir ())
+			       ["img/DSC_0984.jpg"])
+		       () ;
+		 ]
            ]))
 
     
