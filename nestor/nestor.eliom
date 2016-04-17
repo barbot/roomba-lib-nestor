@@ -1,7 +1,7 @@
 {shared{
   open Eliom_lib
   open Eliom_content
-  open Html5.D
+  open Html5.F
   open Eliom_parameter
 }}
 
@@ -23,7 +23,7 @@ let action_services =
     
 let actions_service_link =
   List.map (fun (x,y) ->
-    a y  [ pcdata x; br () ]  ()) action_services
+    a y [ pcdata x; br () ]  ()) action_services
 
 
 let html_of_data r =
