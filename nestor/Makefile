@@ -152,7 +152,7 @@ $(TEST_PREFIX)${ETCDIR}/${PROJECT_NAME}-test.conf: ${PROJECT_NAME}.conf.in Makef
 ##----------------------------------------------------------------------
 ## Server side compilation
 
-SERVER_INC  := ${addprefix -package ,${SERVER_PACKAGES}}
+SERVER_INC  := ${addprefix -package ,${SERVER_PACKAGES}} -thread
 
 ${ELIOM_TYPE_DIR}/%.type_mli: %.eliom
 	${ELIOMC} -infer ${SERVER_INC} $<

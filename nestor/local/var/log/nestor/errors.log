@@ -1,1 +1,15 @@
 Apr 16 21:44:41: ocsigen:main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading local/lib/nestor/nestor.cmxs: Eliom: Duplicate registration of service "x". Please correct the module.
+Apr 16 22:05:02: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 16 22:05:46: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 16 22:05:48: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 16 22:07:21: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 16 22:07:24: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 16 22:07:43: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 16 22:11:21: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 16 22:11:22: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 16 22:16:28: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 17 10:09:11: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 17 10:10:00: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 17 10:10:05: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 17 10:14:00: ocsigen:main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-sqlite not found: maybe you forgot <findlib path="..."/>?
+Apr 17 10:15:48: ocsigen:main: Fatal - Findlib package unix,threads,str not found: maybe you forgot <findlib path="..."/>?

@@ -13,6 +13,7 @@
     %%% Only set when debugging
     %%DEBUGMODE%%
     <commandpipe>%%CMDPIPE%%</commandpipe>
+    <findlib path="/home/pi/.opam/4.02.1/lib/"/>
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
     <extension findlib-package="ocsigenserver.ext.ocsipersist-%%PERSISTENT_DATA_BACKEND%%"/>
     <extension findlib-package="eliom.server"/>
