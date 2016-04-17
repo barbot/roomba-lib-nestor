@@ -34,6 +34,7 @@ let skeletton bc action =
   let ro = Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0" in
   Interface_local.roomba_cmd ro Type_def.WakeUp;
   Interface_local.query_list ro [1;2;3;43;44;45;106];
+  Interface_local.close_roomba ro;
   
   Lwt.return
         (Eliom_tools.F.html
