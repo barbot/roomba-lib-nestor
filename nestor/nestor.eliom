@@ -51,6 +51,8 @@ let skeletton bc action =
   | "stop" -> roomba_cmd ro (Drive (0,0))
  end;
   query_list ro [1;2;3;43;44;45;106];
+  let sensorval = html_of_data ro in
+  
   close_roomba ro;
   
   Lwt.return
@@ -61,7 +63,7 @@ let skeletton bc action =
              h2 [pcdata "Welcome from Nestor !"];
 	     div ~a:[a_class ["action"]] actions_service_link ;
 	     div ~a:[a_class ["well"]] bc ;
-	     div ~a:[a_class ["sensor"]] [ul (html_of_data ro)] ;
+	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
            ]))
 
     
