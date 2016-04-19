@@ -15,8 +15,7 @@ let ro = ref None
 
 let rec sleep_thread () =
   while true do 
-    Unix.sleep 10;
-    print_endline "goto sleep";
+    Unix.sleep 120;
     match !ro with
       None -> ()
     | Some cro -> (
