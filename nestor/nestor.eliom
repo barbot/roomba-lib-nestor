@@ -16,8 +16,8 @@ let ro =  Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0"
 let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
-let actions = [ "refresh" "safe"; "start"; "power"; "spot"; "clean"; "max" ; "dock";
-	      "stop"; "avance"; "recule"; "droite"; "gauche"]
+let actions = [ "refresh"; "clean"; "power"; "spot"; "max" ; "dock";
+	      "safe"; "stop"; "avance"; "recule"; "droite"; "gauche"]
 
 let action_services =
   List.map (fun x ->
