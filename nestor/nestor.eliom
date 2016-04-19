@@ -15,7 +15,7 @@ let ro = ref None
 
 let rec sleep_thread () =
   while true do 
-    Lwt.join [ Lwt_unix.sleep 10.0];
+    Unix.sleep 10.0;
     match !ro with
       None -> ()
     | Some cro -> (
