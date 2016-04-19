@@ -38,7 +38,7 @@ let skeletton bc action =
   (*let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in*)
   (*roomba_cmd ro WakeUp;*)
   begin match action with
-  | "refresh" -> ()
+    | "/" | "refresh" -> ()
   | "safe" -> roomba_cmd ro Safe
   | "power" -> roomba_cmd ro Power
   | "spot" -> roomba_cmd ro Spot
