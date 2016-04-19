@@ -15,16 +15,13 @@ let ro = ref None
 
 let rec sleep_thread () =
   while true do 
-    Lwt.bind 
-      (Lwt_unix.sleep 10.0)
-      (fun () ->
-	match !ro with
-	  None -> Lwt.return ()
-	| Some cro -> (
-	  Interface_local.close_roomba cro;
-	  ro := None;
-	  Lwt.return ())
-      );
+    Lwt.join [ Lwt_unix.sleep 10.0];
+    match !ro with
+      None -> ()
+    | Some cro -> (
+      Interface_local.close_roomba cro;
+      ro := None;
+    )
   done
 
 let slth = Lwt_preemptive.detach sleep_thread ()
