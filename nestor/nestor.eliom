@@ -16,7 +16,7 @@ let ro =  Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0"
 let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
-let actions = [ "safe"; "start"; "power"; "spot"; "clean"; "max" ;
+let actions = [ "refresh" "safe"; "start"; "power"; "spot"; "clean"; "max" ; "dock";
 	      "stop"; "avance"; "recule"; "droite"; "gauche"]
 
 let action_services =
@@ -38,13 +38,13 @@ let skeletton bc action =
   (*let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in*)
   (*roomba_cmd ro WakeUp;*)
   begin match action with
-  | "/" -> ()
+  | "refresh" -> ()
   | "safe" -> roomba_cmd ro Safe
-  | "start" -> roomba_cmd ro Start
   | "power" -> roomba_cmd ro Power
   | "spot" -> roomba_cmd ro Spot
   | "clean" -> roomba_cmd ro Clean
   | "max" -> roomba_cmd ro Max
+  | "dock" -> roomba_cmd ro Dock
     
   | "avance" -> roomba_cmd ro (Drive (100,0))
   | "recule" -> roomba_cmd ro (Drive (-100,0))
