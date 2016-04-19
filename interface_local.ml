@@ -38,6 +38,13 @@ let convertbyte x =
   and low = char_of_int (x land 255) in
   Printf.sprintf "%c%c" high low
 
+let wake_up () =
+  ignore (Sys.command "echo 0 > /sys/class/gpio/gpio4/value");
+  ignore (Unix.select [] [] [] 0.01);
+  ignore (Sys.command "echo 1 > /sys/class/gpio/gpio4/value");
+  ignore (Unix.select [] [] [] 0.01)
+
+    
 let roomba_cmd_string = function
   | Start -> soc 128
   | Control -> soc 130
@@ -56,13 +63,10 @@ let roomba_cmd_string = function
   | Stream l -> List.fold_left (fun x y -> Printf.sprintf "%s%c" x (char_of_int y)) ("\148"^(soc (List.length l))) l
   | QueryList l -> List.fold_left (fun x y -> Printf.sprintf "%s%c" x (char_of_int y)) ("\149"^(soc (List.length l))) l
   | PauseStream v -> Printf.sprintf "%s%c" (soc 150) (char_of_int (if v then 1 else 0))
-  | WakeUp ->
-     ignore (Sys.command "echo 0 > /sys/class/gpio/gpio4/value");
-    ignore (Unix.select [] [] [] 0.01);
-    ignore (Sys.command "echo 1 > /sys/class/gpio/gpio4/value");
-    ""
+  | WakeUp -> wake_up (); ""
      
-
+  
+      
 let roomba_cmd r cmd =
   let s = roomba_cmd_string cmd in
   let n = String.length s in
