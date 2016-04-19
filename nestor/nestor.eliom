@@ -40,10 +40,9 @@ let action_services =
   List.map (fun x ->
     (x,Eliom_service.App.service  ~get_params:unit ~path:[x] ())) actions
     
-let actions_service_link =
-  (a wakeup_service [ pcdata "WakeUp"; br () ] ())::
-      List.map (fun (x,y) ->
-	a y [ pcdata x; br () ]  ()) action_services
+let actions_service_link = 
+  List.map (fun (x,y) ->
+    a y [ pcdata x; br () ]  ()) action_services
   
 
 let html_of_data r =
@@ -51,14 +50,14 @@ let html_of_data r =
     li [pcdata n ; pcdata ": "; pcdata v]  ) (Type_def.print_list (Interface_local.get_state r))
     
 let skeletton bc action =
-  let sensorval =
+  let sensorval,actionlist =
     begin match !ro with
     | None ->
        begin if action="wakeup" then
 	 Interface_local.wake_up ();
 	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
        end;
-      []
+      [], [(a wakeup_service [ pcdata "WakeUp"; br () ] ())]
     | Some cro -> 
        
        let open Type_def in
@@ -66,7 +65,7 @@ let skeletton bc action =
   (*let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in*)
   (*roomba_cmd ro WakeUp;*)
        begin match action with
-       | "/" | "refresh" -> ()
+       | "/" | "refresh" | "wakeup" -> ()
        | "safe" -> roomba_cmd cro Safe
        | "power" -> roomba_cmd cro Power
        | "spot" -> roomba_cmd cro Spot
@@ -81,7 +80,7 @@ let skeletton bc action =
        | "stop" -> roomba_cmd cro (Drive (0,0))
        end;
        query_list cro [1;2;3;43;44;45;106];
-       html_of_data cro 
+       (html_of_data cro),(a wakeup_service [ pcdata "WakeUp"; br () ] ())::actions_service_link 
     end in
     
   (*close_roomba ro;*)
@@ -92,7 +91,7 @@ let skeletton bc action =
            ~css:[["css";"nestor.css"]]
            Html5.F.(body [
              h2 [pcdata "Welcome from Nestor !"];
-	     div ~a:[a_class ["action"]] actions_service_link ;
+	     div ~a:[a_class ["action"]] actionlist ;
 	     div ~a:[a_class ["well"]] bc ;
 	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
 	     div ~a:[a_class ["image"]] [
