@@ -4,11 +4,11 @@
 <!-- %%WARNING%% -->
 <ocsigen>
   <server>
-    <port protocol="HTTPS">%%PORT%%</port>
-    <ssl>
+    <port>%%PORT%%</port>
+    <!--<ssl>
       <certificate>/etc/letsencrypt/live/savonette.zzzz.io/fullchain.pem</certificate>
       <privatekey>/etc/letsencrypt/live/savonette.zzzz.io/privkey.pem</privatekey>
-    </ssl>
+    </ssl>-->
     %%% Only set for running, not for testing
     %%USERGROUP%%
     <logdir>%%LOGDIR%%</logdir>
@@ -25,10 +25,9 @@
     %%PACKAGES%%
     <host hostfilter="*">
      <authbasic realm="nestor">
-                                <plain login="me" password="dirtypass" />
-                                                           </authbasic>
-
-          <static dir="%%STATICDIR%%" />
+       <plain login="me" password="dirtypass" />
+     </authbasic>
+     <static dir="%%STATICDIR%%" />
       <static dir="%%ELIOMSTATICDIR%%" />
       <eliommodule module="%%LIBDIR%%/%%PROJECT_NAME%%.cma" />
       <eliom/>
