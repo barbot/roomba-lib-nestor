@@ -4,7 +4,11 @@
 <!-- %%WARNING%% -->
 <ocsigen>
   <server>
-    <port>%%PORT%%</port>
+    <port protocol="HTTPS">%%PORT%%</port>
+    <ssl>
+	<certificate>/etc/letsencrypt/live/savonette.zzzz.io/fullchain.pem</certificate>
+        <privatekey>/etc/letsencrypt/live/savonette.zzzz.io/privkey.pem</privatekey>
+    </ssl>
     %%% Only set for running, not for testing
     %%USERGROUP%%
     <logdir>%%LOGDIR%%</logdir>
