@@ -6,8 +6,8 @@
   <server>
     <port protocol="HTTPS">%%PORT%%</port>
     <ssl>
-	<certificate>/etc/letsencrypt/live/savonette.zzzz.io/fullchain.pem</certificate>
-        <privatekey>/etc/letsencrypt/live/savonette.zzzz.io/privkey.pem</privatekey>
+      <certificate>/etc/letsencrypt/live/savonette.zzzz.io/fullchain.pem</certificate>
+      <privatekey>/etc/letsencrypt/live/savonette.zzzz.io/privkey.pem</privatekey>
     </ssl>
     %%% Only set for running, not for testing
     %%USERGROUP%%
@@ -24,10 +24,13 @@
     %%% This will include the packages defined as SERVER_PACKAGES in your Makefile:
     %%PACKAGES%%
     <host hostfilter="*">
-      <static dir="%%STATICDIR%%" />
-      <static dir="%%ELIOMSTATICDIR%%" />
-      <eliommodule module="%%LIBDIR%%/%%PROJECT_NAME%%.cma" />
-      <eliom/>
+    <authbasic realm="nestor">
+      <plain login="me" password="dirtypass" />
+    </authbasic>
+    <static dir="%%STATICDIR%%" />
+    <static dir="%%ELIOMSTATICDIR%%" />
+    <eliommodule module="%%LIBDIR%%/%%PROJECT_NAME%%.cma" />
+    <eliom/>
     </host>
   </server>
 </ocsigen>
