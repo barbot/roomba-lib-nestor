@@ -20,7 +20,7 @@ let rec sleep_thread () =
     match !ro with
       None -> ()
     | Some cro when not !alive -> (
-      Interface_local.roomba_cmd cro (DriveDirect (0,0));
+      Interface_local.roomba_cmd cro (Drive (0,0));
       Interface_local.close_roomba cro;
       ro := None;)
     | _ -> alive := false
@@ -31,7 +31,7 @@ let slth = Lwt_preemptive.detach sleep_thread ()
 let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
-let actions = [ "refresh"; "clean"; "power"; "spot"; "max" ; "dock";
+let actions = [ "refresh"; "close"; "clean"; "power"; "spot"; "max" ; "dock";
 	      "safe"; "stop"; "avance"; "recule"; "droite"; "gauche"]
 
 let wakeup_service =
@@ -69,6 +69,9 @@ let skeletton bc action =
        begin match action with
        | "/" | "refresh" | "wakeup" -> ()
        | "safe" -> roomba_cmd cro Safe
+       | "close" -> roomba_cmd cro (Drive (0,0));
+		    close_roomba cro;
+		    ro := None
        | "power" -> roomba_cmd cro Power
        | "spot" -> roomba_cmd cro Spot
        | "clean" -> roomba_cmd cro Clean
