@@ -105,12 +105,12 @@ type cmd =
   | QueryList of int list
   | WakeUp
 
-let print_ioption s2 op l = match op with
+let print_ioption ?unit:(u="") s2 op l = match op with
   | None -> l
-  | Some i -> (s2,(string_of_int i))::l
-let print_boption s2 op l = match op with
+  | Some i -> (s2,(string_of_int i)^u)::l
+let print_boption ?unit:(u="") s2 op l = match op with
   | None -> l
-  | Some i -> (s2,(string_of_bool i))::l
+  | Some i -> (s2,(string_of_bool i)^u)::l
 
 
 let update_time r =
@@ -143,11 +143,11 @@ let print_list r =
   print_ioption "angle" r.angle;
 
   print_ioption "charging state" r.chargingState ;
-  print_ioption "voltage" r.voltage;
-  print_ioption "current" r.current ;
-  print_ioption "temperature" r.temperature;
-  print_ioption "battery Charge" r.batteryCharge;
-  print_ioption "battery Capacity" r.batteryCapacity;
+  print_ioption "voltage" ~unit:"mV" r.voltage;
+  print_ioption "current" ~unit:"mA" r.current ;
+  print_ioption "temperature" ~unit:"\\°C" r.temperature;
+  print_ioption "battery Charge" ~unit:"mAh" r.batteryCharge;
+  print_ioption "battery Capacity" ~unit:"mAh" r.batteryCapacity;
 
   print_ioption "wall Signal" r.wallSignal;
   print_ioption "cliff left Signal" r.cliffLeftSignal;
