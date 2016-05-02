@@ -41,7 +41,7 @@ let packet_length = function
   | 100 -> 26+14+12 + 5+12+2+8
   | 101 -> 5+12+2+8
   | 106 -> 12
-  | 107 -> 8
+  | 107 -> 9
 
   |x-> raise (Invalid_Packet x)
 
