@@ -3,6 +3,7 @@
 %%% This comment will disappear.
 <!-- %%WARNING%% -->
 <ocsigen>
+
   <server>
     <port>%%PORT%%</port>
     <!--<ssl>
@@ -14,6 +15,9 @@
     <logdir>%%LOGDIR%%</logdir>
     <datadir>%%DATADIR%%</datadir>
     <charset>utf-8</charset>
+
+    	 
+
     %%% Only set when debugging
     %%DEBUGMODE%%
     <commandpipe>%%CMDPIPE%%</commandpipe>
@@ -21,13 +25,15 @@
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
     <extension findlib-package="ocsigenserver.ext.ocsipersist-%%PERSISTENT_DATA_BACKEND%%"/>
     <extension findlib-package="eliom.server"/>
-    %%% This will include the packages defined as SERVER_PACKAGES in your Makefile:
+        <extension findlib-package="ocsigenserver.ext.authbasic"/>
+%%% This will include the packages defined as SERVER_PACKAGES in your Makefile:
     %%PACKAGES%%
     <host hostfilter="*">
      <authbasic realm="nestor">
-       <plain login="me" password="dirtypass" />
-     </authbasic>
-     <static dir="%%STATICDIR%%" />
+                                <plain login="me" password="dirtypass" />
+				                           </authbasic>
+							   
+    	  <static dir="%%STATICDIR%%" />
       <static dir="%%ELIOMSTATICDIR%%" />
       <eliommodule module="%%LIBDIR%%/%%PROJECT_NAME%%.cma" />
       <eliom/>
