@@ -12,15 +12,18 @@ module Nestor_app =
     end)
     
 let ro = ref None
-
+let alive = ref false
+	     
 let rec sleep_thread () =
   while true do 
     Unix.sleep 120;
     match !ro with
       None -> ()
-    | Some cro -> (
+    | Some cro when not !alive -> (
+      Interface_local.roomba_cmd cro (DriveDirect (0,0));
       Interface_local.close_roomba cro;
       ro := None;
+    | _ -> alive := false
     )
   done
 
@@ -50,6 +53,7 @@ let html_of_data r =
     
 let skeletton bc action =
   let sensorval,actionlist =
+    alive := true;
     begin match !ro with
     | None ->
        begin if action="wakeup" then
