@@ -177,10 +177,10 @@ let print_list r =
   print_ioption "bump front right Signal" r.lightBumpFrontRight;
   print_ioption "bump right Signal" r.lightBumpRight;
   
-  print_ioption "left motor current" r.leftMotorCurrent;
-  print_ioption "right motor current" r.rightMotorCurrent;
-  print_ioption "main brush motor current" r.mainBrushMotorCurrent;
-  print_ioption "side brush motor current" r.sideBrushMotorCurrent;
+  print_ioption "left motor current" ~unit:"mA" r.leftMotorCurrent;
+  print_ioption "right motor current" ~unit:"mA" r.rightMotorCurrent;
+  print_ioption "main brush motor current" ~unit:"mA" r.mainBrushMotorCurrent;
+  print_ioption "side brush motor current" ~unit:"mA" r.sideBrushMotorCurrent;
   print_boption "stasis" r.stasis;
 
 
