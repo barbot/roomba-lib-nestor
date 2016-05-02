@@ -46,7 +46,7 @@ let actions_service_link =
     a y [ pcdata x; br () ]  ()) action_services
 
 let get_uptime =
-  Lwt_process.pread_line ("/usr/bin/uptime",[])
+  Lwt_process.pread_line ("/usr/bin/uptime",[||])
 	   
 let html_of_data r =
   List.map (fun (n,v) ->
