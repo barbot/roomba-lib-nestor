@@ -45,7 +45,7 @@ let actions_service_link =
   List.map (fun (x,y) ->
     a y [ pcdata x; br () ]  ()) action_services
   
-
+	   
 let html_of_data r =
   List.map (fun (n,v) ->
     li [pcdata n ; pcdata ": "; pcdata v]  ) (Type_def.print_list (Interface_local.get_state r))
@@ -81,7 +81,7 @@ let skeletton bc action =
        | "gauche" -> roomba_cmd cro (Drive (100,1))
        | "stop" -> roomba_cmd cro (Drive (0,0))
        end;
-       query_list cro [100]; (*[1;2;3;43;44;45;106];*)
+       query_list cro [1;2;3;4;5;43;44;45;106];
        (html_of_data cro),(a wakeup_service [ pcdata "WakeUp"; br () ] ())::actions_service_link 
     end in
     
