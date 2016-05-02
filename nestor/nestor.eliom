@@ -20,7 +20,7 @@ let rec sleep_thread () =
     match !ro with
       None -> ()
     | Some cro when not !alive -> (
-      Interface_local.roomba_cmd cro (DriveDirect (0,0));
+      Interface_local.roomba_cmd cro (Drive (0,0));
       Interface_local.close_roomba cro;
       ro := None;)
     | _ -> alive := false
@@ -31,7 +31,7 @@ let slth = Lwt_preemptive.detach sleep_thread ()
 let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
-let actions = [ "refresh"; "clean"; "power"; "spot"; "max" ; "dock";
+let actions = [ "refresh"; "close"; "clean"; "power"; "spot"; "max" ; "dock";
 	      "safe"; "stop"; "avance"; "recule"; "droite"; "gauche"]
 
 let wakeup_service =
@@ -45,7 +45,7 @@ let actions_service_link =
   List.map (fun (x,y) ->
     a y [ pcdata x; br () ]  ()) action_services
   
-
+	   
 let html_of_data r =
   List.map (fun (n,v) ->
     li [pcdata n ; pcdata ": "; pcdata v]  ) (Type_def.print_list (Interface_local.get_state r))
@@ -69,6 +69,9 @@ let skeletton bc action =
        begin match action with
        | "/" | "refresh" | "wakeup" -> ()
        | "safe" -> roomba_cmd cro Safe
+       | "close" -> roomba_cmd cro (Drive (0,0));
+		    close_roomba cro;
+		    ro := None
        | "power" -> roomba_cmd cro Power
        | "spot" -> roomba_cmd cro Spot
        | "clean" -> roomba_cmd cro Clean
@@ -81,7 +84,7 @@ let skeletton bc action =
        | "gauche" -> roomba_cmd cro (Drive (100,1))
        | "stop" -> roomba_cmd cro (Drive (0,0))
        end;
-       query_list cro [100]; (*[1;2;3;43;44;45;106];*)
+       query_list cro [1;2;3;4;5;43;44;45;106];
        (html_of_data cro),(a wakeup_service [ pcdata "WakeUp"; br () ] ())::actions_service_link 
     end in
     
