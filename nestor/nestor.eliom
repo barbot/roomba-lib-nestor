@@ -84,7 +84,7 @@ let skeletton bc action =
        | "gauche" -> roomba_cmd cro (Drive (100,1))
        | "stop" -> roomba_cmd cro (Drive (0,0))
        end;
-       query_list cro [1;2;3;4;5;43;44;45;106];
+       query_list cro [1;2;3;4;5;43;44;45;106;107];
        (html_of_data cro),(a wakeup_service [ pcdata "WakeUp"; br () ] ())::actions_service_link 
     end in
     
