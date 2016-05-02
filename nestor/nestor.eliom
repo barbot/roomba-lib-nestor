@@ -22,9 +22,8 @@ let rec sleep_thread () =
     | Some cro when not !alive -> (
       Interface_local.roomba_cmd cro (DriveDirect (0,0));
       Interface_local.close_roomba cro;
-      ro := None;
+      ro := None;)
     | _ -> alive := false
-    )
   done
 
 let slth = Lwt_preemptive.detach sleep_thread ()
