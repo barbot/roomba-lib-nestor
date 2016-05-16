@@ -59,6 +59,15 @@ let html_of_data r =
       ("posy", Printf.sprintf "%fmm" (!Distance.static_pt).posy )::
       ("angle", Printf.sprintf "%frad" (!Distance.static_pt).angle )::
       (Type_def.print_list (Interface_local.get_state r)))
+
+let svg_of_traj tr =
+  let coords = List.fold_left
+    (fun x y -> Printf.sprintf "%s %f %f" x y.Distance.posx y.Distance.posy) "" tr in
+  let img = "<svg viewBox = \"0 0 200 200\" version = \"1.1\">
+    <polyline points = \""^coords^"\" fill = \"none\" stroke = \"black\" stroke-width = \"3\"/>
+</svg>" in
+  img
+
     
 let skeletton bc action =
   let sensorval,actionlist =
@@ -79,9 +88,11 @@ let skeletton bc action =
   (*roomba_cmd ro WakeUp;*)
        begin match action with
        | "/" | "refresh" | "wakeup" -> ()
-       | "synchronize" -> sync_state cro [1;2;3;43;44;45;106];
+       | "synchronize" -> if not !synchronized then begin
+	 sync_state cro [1;2;3;43;44;45;106];
 	 change_callback cro (callbackfun static_pt);
 	 synchronized := true
+       end
        | "safe" -> roomba_cmd cro Safe
        | "close" -> roomba_cmd cro (Drive (0,0));
 		    close_roomba cro;
@@ -124,7 +135,8 @@ let skeletton bc action =
 			       ~service:(Eliom_service.static_dir ())
 			       ["img/DSC_0984.jpg"])
 		       () ;
-		 ]
+	     ];
+	     div ~a:[a_class ["image"]] [ pcdata (svg_of_traj !Distance.static_traj) ]
            ]))
 
     
