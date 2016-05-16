@@ -10,17 +10,20 @@ module Nestor_app =
     struct
       let application_name = "nestor"
     end)
+
     
 let ro = ref None
 let alive = ref false
-	     
+let synchronized = ref false
+  
 let rec sleep_thread () =
   while true do 
     Unix.sleep 120;
     match !ro with
       None -> ()
     | Some cro when not !alive -> (
-      Interface_local.roomba_cmd cro (Drive (0,0));
+      Interface_local.roomba_cmd cro (Type_def.Drive (0,0));
+      if !synchronized then Interface_local.stop_sync cro;
       Interface_local.close_roomba cro;
       ro := None;)
     | _ -> alive := false
@@ -32,7 +35,8 @@ let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
 let actions = [ "refresh"; "close"; "clean"; "power"; "spot"; "max" ; "dock";
-	      "safe"; "stop"; "avance"; "recule"; "droite"; "gauche"]
+		"safe"; "stop"; "avance"; "recule"; "droite"; "gauche";
+		"synchronize"]
 
 let wakeup_service =
   Eliom_service.App.service  ~get_params:unit ~path:["wakeup"] ()
@@ -50,7 +54,11 @@ let get_uptime =
 	   
 let html_of_data r =
   List.map (fun (n,v) ->
-    li [pcdata n ; pcdata ": "; pcdata v]  ) (Type_def.print_list (Interface_local.get_state r))
+    li [pcdata n ; pcdata ": "; pcdata v]  ) (
+    ("posx", Printf.sprintf "%fmm" (!Distance.static_pt).posx )::
+      ("posy", Printf.sprintf "%fmm" (!Distance.static_pt).posy )::
+      ("angle", Printf.sprintf "%frad" (!Distance.static_pt).angle )::
+      (Type_def.print_list (Interface_local.get_state r)))
     
 let skeletton bc action =
   let sensorval,actionlist =
@@ -66,10 +74,14 @@ let skeletton bc action =
        
        let open Type_def in
        let open Interface_local in
+       let open Distance in
   (*let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in*)
   (*roomba_cmd ro WakeUp;*)
        begin match action with
        | "/" | "refresh" | "wakeup" -> ()
+       | "synchronize" -> sync_state cro [1;2;3;43;44;45;106];
+	 change_callback cro (callbackfun static_pt);
+	 synchronized := true
        | "safe" -> roomba_cmd cro Safe
        | "close" -> roomba_cmd cro (Drive (0,0));
 		    close_roomba cro;
@@ -86,7 +98,7 @@ let skeletton bc action =
        | "gauche" -> roomba_cmd cro (Drive (100,1))
        | "stop" -> roomba_cmd cro (Drive (0,0))
        end;
-       query_list cro [1;2;3;4;5;43;44;45;106;107];
+       if not !synchronized then query_list cro [1;2;3;4;5;43;44;45;106;107];
        (html_of_data cro),(a wakeup_service [ pcdata "WakeUp"; br () ] ())::actions_service_link 
     end in
     
