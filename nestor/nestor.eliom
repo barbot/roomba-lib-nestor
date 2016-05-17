@@ -71,8 +71,12 @@ let svg_of_traj tr =
     </svg>" in*)
   let lcoord = List.map (fun x ->  (x.Distance.posx, x.Distance.posy)) tr in
   
-  svg ~a:[Eliom_content.Svg.F.a_viewbox (-200.0, -200.0, 200.0, 200.0)] [
-    Eliom_content.Svg.F.polyline ~a:[
+  svg ~a:[
+    Eliom_content.Svg.F.a_viewbox (-200.0, -200.0, 200.0, 200.0);
+    Eliom_content.Svg.F.a_height (400.0,Some `Px);
+    Eliom_content.Svg.F.a_width (400.0,Some `Px);
+  ]  
+    [ Eliom_content.Svg.F.polyline ~a:[
       Eliom_content.Svg.F.a_points lcoord;
       Eliom_content.Svg.F.a_style "fill:none;stroke:black;stroke-width:3"
     ] []
