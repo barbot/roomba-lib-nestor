@@ -138,6 +138,7 @@ let skeletton bc action =
 	     div ~a:[a_class ["action"]] actionlist ;
 	     div ~a:[a_class ["well"]] bc ;
 	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
+	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ];
 	     div ~a:[a_class ["image"]] [
 		   img ~alt:("Ocsigen Logo")
 		       ~src:(make_uri
@@ -150,7 +151,6 @@ let skeletton bc action =
 			       ["img/DSC_0984.jpg"])
 		       () ;
 	     ];
-	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ]
            ]))
 
     
