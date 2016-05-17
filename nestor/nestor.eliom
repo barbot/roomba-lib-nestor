@@ -69,7 +69,7 @@ let svg_of_traj tr =
   let img = "<svg viewBox = \"0 0 200 200\" version = \"1.1\">
     <polyline points = \""^coords^"\" fill = \"none\" stroke = \"black\" stroke-width = \"3\"/>
     </svg>" in*)
-  let lcoord = List.map (fun x ->  (200.0+.x.Distance.posx, 200.0+.x.Distance.posy)) tr in
+  let lcoord = List.map (fun x ->  (200.0+.0.1*.x.Distance.posx, 200.0+.0.1*.x.Distance.posy)) tr in
   
   svg ~a:[
     Eliom_content.Svg.F.a_viewbox (0.0, 0.0, 400.0, 400.0);
