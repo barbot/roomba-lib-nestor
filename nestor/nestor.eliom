@@ -23,7 +23,10 @@ let rec sleep_thread () =
       None -> ()
     | Some cro when not !alive -> (
       Interface_local.roomba_cmd cro (Type_def.Drive (0,0));
-      if !synchronized then Interface_local.stop_sync cro;
+      if !synchronized then begin
+	Interface_local.stop_sync cro;
+	synchronized := false;
+      end;
       Interface_local.close_roomba cro;
       ro := None;)
     | _ -> alive := false
@@ -66,7 +69,7 @@ let svg_of_traj tr =
   let img = "<svg viewBox = \"0 0 200 200\" version = \"1.1\">
     <polyline points = \""^coords^"\" fill = \"none\" stroke = \"black\" stroke-width = \"3\"/>
 </svg>" in
-  img
+  svg ~a:[Eliom_content.Svg.F.a_viewbox (0.0, 0.0, 400.0, 400.0)] []
 
     
 let skeletton bc action =
@@ -136,7 +139,7 @@ let skeletton bc action =
 			       ["img/DSC_0984.jpg"])
 		       () ;
 	     ];
-	     div ~a:[a_class ["image"]] [ pcdata (svg_of_traj !Distance.static_traj) ]
+	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ]
            ]))
 
     
