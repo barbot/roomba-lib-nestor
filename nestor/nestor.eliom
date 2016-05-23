@@ -9,9 +9,10 @@
     float*float*float
       [@@deriving json]
 
+      
 ]
 
-
+let bus = Eliom_bus.create [%derive.json: messages]
 
   open Eliom_lib
   open Eliom_content
@@ -182,17 +183,63 @@ let skeletton bc action =
 	     ];*)
            ]))
 
+let%client init_client () =
+
+  let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
+  let ctx = canvas##(getContext (Dom_html._2d_)) in
+  ctx##.lineCap := Js.string "round";
+
+  let x = ref 0 and y = ref 0 in
+
+  let set_coord ev =
+    let x0, y0 = Dom_html.elementClientPosition canvas in
+    x := ev##.clientX - x0; y := ev##.clientY - y0
+  in
+
+  let compute_line ev =
+    let oldx = !x and oldy = !y in
+    set_coord ev;
+    ((0, 0, 0), 5, (oldx, oldy), (!x, !y))
+  in
+
+  let compute_line2 ctx (xf,yf,r) =
+    let oldx = !x and oldy = !y in
+    x:= width/2 + int_of_float (xf*.0.02);
+    y:= height/2 + int_of_float (yf*.0.02);
+    let line = ((0, 0, 0), 5, (oldx, oldy), (!x, !y)) in
+    draw ctx line
+  in
+
+  let line ev =
+    let v = compute_line ev in
+    draw ctx v;
+    Lwt.return () in
+  
+  Lwt.async (fun () ->
+    let open Lwt_js_events in
+    mousedowns canvas
+      (fun ev _ ->
+         set_coord ev; line ev >>= fun () ->
+           Lwt.pick
+             [mousemoves Dom_html.document (fun x _ -> line x);
+	      mouseup Dom_html.document >>= line]));
     
+  Lwt.async (fun () -> Lwt_stream.iter (compute_line2 ctx) (Eliom_bus.stream ~%bus))
+  
 let () =
   Nestor_app.register
     ~service:main_service
-    (fun () () -> skeletton [p [pcdata "A, B, C..."]] "/");
+    (fun () () ->
+      let _ = [%client (init_client () : unit) ] in
+      skeletton [p [pcdata "A, B, C..."]] "/");
   Nestor_app.register ~service:wakeup_service (fun () () ->
-	skeletton [p [pcdata "Waking up!"]] "wakeup");
+    let _ = [%client (init_client () : unit) ] in
+    skeletton [p [pcdata "Waking up!"]] "wakeup");
   List.iter (fun (n,s) ->
     Nestor_app.register
       ~service:s
       (fun () () ->
+	let _ = [%client (init_client () : unit) ] in
 	skeletton [p [pcdata n]] n))
     action_services
 
