@@ -81,6 +81,26 @@ let actions_service_link =
   List.map (fun (x,y) ->
     a y [ pcdata x; br () ]  ()) action_services
 
+let action_service_ro =
+  div [table [
+  tr [ td [ ];
+       td [a (List.assoc "avance" action_services) [pcdata "^"] ()];
+       td [] ;
+       td []; td [a (List.assoc "spot" action_services) [pcdata "spot"] ()];
+     ];
+    tr [
+      td [a (List.assoc "gauche" action_services) [pcdata "<"] ()];
+      td [a (List.assoc "stop" action_services) [pcdata "o"] ()];
+      td [a (List.assoc "droite" action_services) [pcdata ">"] ()];
+      td []; td [a (List.assoc "clean" action_services) [pcdata "clean"] ()];
+    ];
+    tr [ td [ ];
+	 td [a (List.assoc "recule" action_services) [pcdata "v"] ()];
+	 td []; td []; td [a (List.assoc "dock" action_services) [pcdata "dock"] ()];
+       ];
+  ] 
+      ]
+    
 let get_uptime =
   Lwt_process.pread_line ("/usr/bin/uptime",[||])
 	   
@@ -116,11 +136,11 @@ let skeletton bc action =
   let sensorval,actionlist =
     alive := true;
     begin match !ro with
-    | None ->
-       begin if action="wakeup" then
+    | None -> 
+(*       begin if action="wakeup" then
 	 Interface_local.wake_up ();
 	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
-       end;
+    end;*)
       [], [(a wakeup_service [ pcdata "WakeUp"; br () ] ())]
     | Some cro -> 
        
@@ -133,7 +153,8 @@ let skeletton bc action =
        | "/" | "refresh" | "wakeup" -> ()
        | "synchronize" -> if not !synchronized then begin
 	 sync_state cro [1;2;3;43;44;45;106];
-	 change_callback cro (callbackfun static_pt);
+	 change_callback cro (callbackfun
+		~cb:(fun x y r -> ignore @@ Eliom_bus.write bus (x,y,r) ) static_pt);
 	 synchronized := true
        end
        | "safe" -> roomba_cmd cro Safe
@@ -165,6 +186,7 @@ let skeletton bc action =
            Html5.F.(body [
              h2 [pcdata "Welcome from Nestor !"];
 	     div ~a:[a_class ["action"]] actionlist ;
+	     action_service_ro ;
 	     div ~a:[a_class ["well"]] bc ;
 	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
 	     canvas_elt
