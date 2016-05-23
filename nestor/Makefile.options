@@ -6,24 +6,24 @@
 PROJECT_NAME := nestor
 
 # Source files for the server
-SERVER_FILES := $(wildcard *.eliomi *.eliom *.ml)
+SERVER_FILES := $(wildcard *.eliomi *.eliom)
 # Source files for the client
 CLIENT_FILES := $(wildcard *.eliomi *.eliom)
 
 # OCamlfind packages for the server
-SERVER_PACKAGES := unix threads str
+SERVER_PACKAGES := lwt.ppx js_of_ocaml.deriving.ppx
 # OCamlfind packages for the client
-CLIENT_PACKAGES :=
+CLIENT_PACKAGES := lwt.ppx js_of_ocaml.deriving.ppx js_of_ocaml.ppx
 
 # Directory with files to be statically served
 LOCAL_STATIC = static
 
 # The backend for persistent data. Can be dbm or sqlite.
-PERSISTENT_DATA_BACKEND = dbm
+PERSISTENT_DATA_BACKEND = sqlite
 
 # Debug application (yes/no): Debugging info in compilation,
 # JavaScript, ocsigenserver
-DEBUG := yes
+DEBUG := no
 
 # User to run server with (make run.*)
 WWWUSER := www-data

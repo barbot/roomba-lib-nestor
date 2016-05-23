@@ -1,8 +1,20 @@
-{server{
+[%%shared
+  (* Modules opened in the shared-section are available in client-
+     and server-code *)
+  open Eliom_content.Html5.D
+  open Lwt
+
+
+  type messages =
+    float*float*float
+      [@@deriving json]
+
+]
+
+
 
   open Eliom_lib
   open Eliom_content
-  open Html5.F
   open Eliom_parameter
   
 module Nestor_app =
@@ -11,6 +23,22 @@ module Nestor_app =
       let application_name = "nestor"
     end)
 
+    
+let%shared width = 700
+let%shared height = 400
+
+let%client draw ctx ((r, g, b), size, (x1, y1), (x2, y2)) =
+  let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
+  ctx##.strokeStyle := (Js.string color);
+  ctx##.lineWidth := float size;
+  ctx##beginPath;
+  ctx##(moveTo (float x1) (float y1));
+  ctx##(lineTo (float x2) (float y2));
+  ctx##stroke
+
+let canvas_elt =
+  canvas ~a:[a_width width; a_height height]
+    [pcdata "your browser doesn't support canvas"]
     
 let ro = ref None
 let alive = ref false
@@ -138,7 +166,8 @@ let skeletton bc action =
 	     div ~a:[a_class ["action"]] actionlist ;
 	     div ~a:[a_class ["well"]] bc ;
 	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
-	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ];
+	     canvas_elt
+(*	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ];
 	     div ~a:[a_class ["image"]] [
 		   img ~alt:("Ocsigen Logo")
 		       ~src:(make_uri
@@ -150,7 +179,7 @@ let skeletton bc action =
 			       ~service:(Eliom_service.static_dir ())
 			       ["img/DSC_0984.jpg"])
 		       () ;
-	     ];
+	     ];*)
            ]))
 
     
@@ -167,4 +196,4 @@ let () =
 	skeletton [p [pcdata n]] n))
     action_services
 
-    }}
+
