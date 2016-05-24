@@ -137,18 +137,18 @@ let skeletton bc action =
     alive := true;
     begin match !ro with
     | None -> 
-(*       begin if action="wakeup" then
+       begin if action="wakeup" then
 	 Interface_local.wake_up ();
 	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
-    end;*)
+    end;
       [], [(a wakeup_service [ pcdata "WakeUp"; br () ] ())]
     | Some cro -> 
        
        let open Type_def in
        let open Interface_local in
        let open Distance in
-       let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in
-       roomba_cmd ro WakeUp;
+  (*let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in*)
+  (*roomba_cmd ro WakeUp;*)
        begin match action with
        | "/" | "refresh" | "wakeup" -> ()
        | "synchronize" -> if not !synchronized then begin
