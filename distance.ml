@@ -53,7 +53,7 @@ let add_trajectory pt =
   | t::_ when pt = t -> ()
   | x -> static_traj := pt::x
 
-let callbackfun ptref s =
+let callbackfun ?cb:(cb=fun _ _ _ -> ()) ptref s =
   try
     let pt = !ptref in
     let dist,dangle = movement s in
@@ -61,7 +61,8 @@ let callbackfun ptref s =
     let nposx  = pt.posx +. ( dist *. (cos pt.angle )) in
     let nposy  = pt.posy +. ( dist *. (sin pt.angle )) in
     ptref := { posx=nposx; posy=nposy; angle=nangle };
-    add_trajectory !ptref; 
+    add_trajectory !ptref;
+    cb nposx nposy nangle
   with
     Data_not_available -> ()
   | x -> print_endline "exception in the callback";
