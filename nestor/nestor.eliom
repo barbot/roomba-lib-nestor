@@ -147,8 +147,8 @@ let skeletton bc action =
        let open Type_def in
        let open Interface_local in
        let open Distance in
-  (*let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in*)
-  (*roomba_cmd ro WakeUp;*)
+       let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in
+       roomba_cmd ro WakeUp;
        begin match action with
        | "/" | "refresh" | "wakeup" -> ()
        | "synchronize" -> if not !synchronized then begin
