@@ -153,8 +153,14 @@ let skeletton bc action =
        | "/" | "refresh" | "wakeup" -> ()
        | "synchronize" -> if not !synchronized then begin
 	 sync_state cro [1;2;3;43;44;45;106];
+	 let xc = ref 0.0 and yc = ref 0.0 and rc = ref 0.0 in
 	 change_callback cro (callbackfun
-		~cb:(fun x y r -> ignore @@ Eliom_bus.write bus (x,y,r) ) static_pt);
+				~cb:(fun x y r ->
+				  if (abs_float !xc-.x)
+				    +. (abs_float !yc-.y)
+				    +. (abs_float !rc-.r) > 1.0 then
+				    (xc:=x; yc:=y; rc:=r;
+				     ignore @@ Eliom_bus.write bus (x,y,r)) ) static_pt);
 	 synchronized := true
        end
        | "safe" -> roomba_cmd cro Safe
@@ -210,6 +216,10 @@ let%client init_client () =
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
   let ctx = canvas##(getContext (Dom_html._2d_)) in
   ctx##.lineCap := Js.string "round";
+  draw ctx ((0, 0, 0), 5, (0, 0), (width, 0));
+  draw ctx ((0, 0, 0), 5, (width, 0), (width, height));
+  draw ctx ((0, 0, 0), 5, (width, height), (0, height));
+  draw ctx ((0, 0, 0), 5, (0, height), (0, 0));
 
   let x = ref 0 and y = ref 0 in
 
@@ -226,8 +236,8 @@ let%client init_client () =
 
   let compute_line2 ctx (xf,yf,r) =
     let oldx = !x and oldy = !y in
-    x:= width/2 + int_of_float (xf*.0.02);
-    y:= height/2 + int_of_float (yf*.0.02);
+    x:= width/2 + int_of_float (xf*.0.01);
+    y:= height/2 + int_of_float (yf*.0.01);
     let line = ((0, 0, 0), 5, (oldx, oldy), (!x, !y)) in
     draw ctx line
   in
