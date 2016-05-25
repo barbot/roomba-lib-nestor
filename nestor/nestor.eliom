@@ -71,11 +71,11 @@ let actions = [ "refresh"; "close"; "clean"; "power"; "spot"; "max" ; "dock";
 		"synchronize"]
 
 let wakeup_service =
-  Eliom_service.App.service  ~get_params:unit ~path:["wakeup"] ()
+  Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:["wakeup"] ()
     
 let action_services =
   List.map (fun x ->
-    (x,Eliom_service.App.service  ~get_params:unit ~path:[x] ())) actions
+    (x,Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:[x] ())) actions
     
 let actions_service_link = 
   List.map (fun (x,y) ->
