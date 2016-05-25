@@ -156,9 +156,9 @@ let skeletton bc action =
 	 let xc = ref 0.0 and yc = ref 0.0 and rc = ref 0.0 in
 	 change_callback cro (callbackfun
 				~cb:(fun x y r ->
-				  if (abs_float !xc-.x)
-				    +. (abs_float !yc-.y)
-				    +. (abs_float !rc-.r) > 10.0 then
+				  if (abs_float (!xc-.x))
+				    +. (abs_float (!yc-.y))
+				    +. (abs_float (!rc-.r)) > 10.0 then
 				    (xc:=x; yc:=y; rc:=r;
 				     ignore @@ Eliom_bus.write bus (x,y,r)) ) static_pt);
 	 synchronized := true
@@ -236,9 +236,9 @@ let%client init_client () =
 
   let compute_line2 ctx (xf,yf,r) =
     let oldx = !x and oldy = !y in
-    x:= width/2 + int_of_float (xf*.0.1);
-    y:= height/2 + int_of_float (yf*.0.1);
-    let line = ((0, 0, 0), 5, (oldx, oldy), (!x, !y)) in
+    x:= width/2 + int_of_float (xf*.0.2);
+    y:= height/2 + int_of_float (yf*.0.2);
+    let line = ((0, 0, 0), 1, (oldx, oldy), (!x, !y)) in
     draw ctx line
   in
 
