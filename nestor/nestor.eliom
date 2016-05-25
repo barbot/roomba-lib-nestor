@@ -255,6 +255,14 @@ let%client init_client () =
            Lwt.pick
              [mousemoves Dom_html.document (fun x _ -> line x);
 	      mouseup Dom_html.document >>= line]));
+  Lwt.async (fun () ->
+    let open Lwt_js_events in
+    mousedowns canvas
+      (fun ev _ ->
+         set_coord ev; line ev >>= fun () ->
+           Lwt.pick
+             [mousemoves Dom_html.document (fun x _ -> line x);
+	      mouseup Dom_html.document >>= line]))
     
   Lwt.async (fun () -> Lwt_stream.iter (compute_line2 ctx) (Eliom_bus.stream ~%bus))
   
