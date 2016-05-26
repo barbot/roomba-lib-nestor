@@ -76,9 +76,9 @@ let wakeup_service =
 let action_service =
   Eliom_service.App.service ~get_params:(string "action") ~path:[] ()
     
-let action_services =
+(*let action_services =
   List.map (fun x ->
-    (x,Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:[] ())) actions
+  (x,Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:[] ())) actions*)
     
 let actions_service_link = 
   List.map (fun (x) ->
