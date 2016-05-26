@@ -87,19 +87,19 @@ let actions_service_link =
 let action_service_ro =
   div [table [
   tr [ td [ ];
-       td [a (List.assoc "avance" action_services) [pcdata "^"] ()];
+       td [a action_service [pcdata "^"] "avance"];
        td [] ;
-       td []; td [a (List.assoc "spot" action_services) [pcdata "spot"] ()];
+       td []; td [a action_service [pcdata "spot"] "spot"];
      ];
     tr [
-      td [a (List.assoc "gauche" action_services) [pcdata "<"] ()];
-      td [a (List.assoc "stop" action_services) [pcdata "o"] ()];
-      td [a (List.assoc "droite" action_services) [pcdata ">"] ()];
-      td []; td [a (List.assoc "clean" action_services) [pcdata "clean"] ()];
+      td [a action_service [pcdata "<"] "gauche"];
+      td [a action_service [pcdata "o"] "stop"];
+      td [a action_service [pcdata ">"] "droite"];
+      td []; td [a action_service [pcdata "clean"] "clean"];
     ];
     tr [ td [ ];
-	 td [a (List.assoc "recule" action_services) [pcdata "v"] ()];
-	 td []; td []; td [a (List.assoc "dock" action_services) [pcdata "dock"] ()];
+	 td [a action_service [pcdata "v"] "recule"];
+	 td []; td []; td [a action_service [pcdata "dock"] "dock"];
        ];
   ] 
       ]
