@@ -72,14 +72,17 @@ let actions = [ "refresh"; "close"; "clean"; "power"; "spot"; "max" ; "dock";
 
 let wakeup_service =
   Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:["wakeup"] ()
+
+let action_service =
+  Eliom_service.App.service ~get_params:(string "action") ~path:[] ()
     
 let action_services =
   List.map (fun x ->
-    (x,Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:[x] ())) actions
+    (x,Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:[] ())) actions
     
 let actions_service_link = 
-  List.map (fun (x,y) ->
-    a y [ pcdata x; br () ]  ()) action_services
+  List.map (fun (x) ->
+    a action_service [ pcdata x; br () ] x) actions
 
 let action_service_ro =
   div [table [
@@ -131,6 +134,52 @@ let svg_of_traj tr =
     ] []
   ]
 
+let action_handling action =
+  alive := true;
+  begin match !ro with
+  | None -> 
+     begin if action="wakeup" then
+	 Interface_local.wake_up ();
+       ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
+     end;
+  | Some cro -> 
+     
+     let open Type_def in
+     let open Interface_local in
+     let open Distance in
+     begin match action with
+     | "/" | "refresh" | "wakeup" -> ()
+     | "synchronize" -> if not !synchronized then begin
+       sync_state cro [1;2;3;43;44;45;106];
+       let xc = ref 0.0 and yc = ref 0.0 and rc = ref 0.0 in
+       change_callback cro (callbackfun
+			      ~cb:(fun x y r ->
+				if (abs_float (!xc-.x))
+				  +. (abs_float (!yc-.y))
+				  +. (abs_float (!rc-.r)) > 10.0 then
+				  (xc:=x; yc:=y; rc:=r;
+				   ignore @@ Eliom_bus.write bus (x,y,r)) ) static_pt);
+       synchronized := true
+     end
+     | "safe" -> roomba_cmd cro Safe
+     | "close" -> roomba_cmd cro (Drive (0,0));
+       close_roomba cro;
+       ro := None
+     | "power" -> roomba_cmd cro Power
+     | "spot" -> roomba_cmd cro Spot
+     | "clean" -> roomba_cmd cro Clean
+     | "max" -> roomba_cmd cro Max
+     | "dock" -> roomba_cmd cro Dock
+	
+     | "avance" -> roomba_cmd cro (Drive (100,0))
+     | "recule" -> roomba_cmd cro (Drive (-100,0))
+     | "droite" -> roomba_cmd cro (Drive (100,-1))
+     | "gauche" -> roomba_cmd cro (Drive (100,1))
+     | "stop" -> roomba_cmd cro (Drive (0,0))
+     end;
+  end
+      
+    
     
 let skeletton bc action =
   let sensorval,actionlist =
@@ -275,12 +324,12 @@ let () =
   Nestor_app.register ~service:wakeup_service (fun () () ->
     let _ = [%client (init_client () : unit) ] in
     skeletton [p [pcdata "Waking up!"]] "wakeup");
-  List.iter (fun (n,s) ->
-    Nestor_app.register
-      ~service:s
-      (fun () () ->
-	let _ = [%client (init_client () : unit) ] in
-	skeletton [p [pcdata n]] n))
-    action_services
+    (*List.iter (fun (n,s) ->*)
+  Nestor_app.register
+    ~service:action_service
+    (fun action () ->
+      let _ = [%client (init_client () : unit) ] in
+      skeletton [p [pcdata action]] action)
+(*) action_services*)
 
 
