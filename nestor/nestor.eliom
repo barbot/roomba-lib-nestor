@@ -177,9 +177,10 @@ let action_handling action =
      | "gauche" -> roomba_cmd cro (Drive (100,1))
      | "stop" -> roomba_cmd cro (Drive (0,0))
      end;
-  end
+  end;
+  Lwt.return unit
       
-    
+let%client action_handling_client = ~%(server_function [%derive.json: string] action_handling)
     
 let skeletton bc action =
   let sensorval,actionlist =
