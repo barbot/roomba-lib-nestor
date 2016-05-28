@@ -91,9 +91,10 @@ let svg_of_traj tr =
       Eliom_content.Svg.F.a_style "fill:none;stroke:black;stroke-width:3"
     ] []
   ]
-
+    
 let action_handling action =
   alive := true;
+  let xc = ref 0.0 and yc = ref 0.0 and rc = ref 0.0 in
   begin match !ro with
   | None -> 
      begin if action="wakeup" then
@@ -106,10 +107,16 @@ let action_handling action =
      let open Interface_local in
      let open Distance in
      begin match action with
-     | "/" | "refresh" | "wakeup" -> ()
+     | "/" | "refresh" | "wakeup" ->
+	if not !synchronized then query_list cro [1;2;3;4;5;43;44;45;106;107];
+       callbackfun ~cb:(fun x y r rs ->
+	 xc:=x; yc:=y; rc:=r;
+	 let sl = print_list rs in
+	 ignore @@ Eliom_bus.write bus (x,y,r,sl)
+       ) static_pt (get_state cro);
+       
      | "synchronize" -> if not !synchronized then begin
        sync_state cro [1;2;3;43;44;45;106];
-       let xc = ref 0.0 and yc = ref 0.0 and rc = ref 0.0 in
        change_callback cro (callbackfun
 			      ~cb:(fun x y r rs ->
 				if (abs_float (!xc-.x))
@@ -125,10 +132,13 @@ let action_handling action =
      | "close" -> roomba_cmd cro (Drive (0,0));
        close_roomba cro;
        ro := None
+
+	 
      | "power" -> roomba_cmd cro Power
+     | "max" -> roomba_cmd cro Max
+	
      | "spot" -> roomba_cmd cro Spot
      | "clean" -> roomba_cmd cro Clean
-     | "max" -> roomba_cmd cro Max
      | "dock" -> roomba_cmd cro Dock
 	
      | "avance" -> roomba_cmd cro (Drive (100,0))
@@ -140,7 +150,6 @@ let action_handling action =
   end;
   Lwt.return unit
 
-    
 let%client action_handling_client = ~%(server_function [%derive.json: string] action_handling)
 
 let action_button x y =
@@ -158,16 +167,23 @@ let action_service_ro =
        td [action_button "avance" "^"];
        td [] ;
        td []; td [action_button "spot" "spot"];
+       td [action_button "safe" "safe"];
      ];
     tr [
       td [action_button "gauche" "<"];
       td [action_button "stop" "o"];
       td [action_button "droite" ">"];
       td []; td [action_button "clean" "clean"];
+      td [action_button "close" "close"];
     ];
     tr [ td [ ];
 	 td [action_button "recule" "v"];
 	 td []; td []; td [action_button "dock"  "dock"];
+	 td [action_button "synchronize" "synchronize"];
+       ];
+    tr [
+      td [action_button "refresh" "refresh"];
+      td [action_button "wakeup" "wakeup"];
        ];
   ] 
       ]
