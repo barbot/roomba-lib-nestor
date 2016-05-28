@@ -182,6 +182,9 @@ let action_service_ro =
 	 td [action_button "synchronize" "synchronize"];
        ];
     tr [
+      td [ ];
+      td [ ];
+      td [ ];
       td [action_button "refresh" "refresh"];
       td [action_button "wakeup" "wakeup"];
        ];
