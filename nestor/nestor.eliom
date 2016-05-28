@@ -188,7 +188,7 @@ let canvas_elt =
   canvas ~a:[a_width width; a_height height]
     [pcdata "your browser doesn't support canvas"]
 let sensor_div =
-  div [ul []]
+  div [ul ~a:[a_id "sensorlist"] []]
     
 let skeletton bc action =
   (*let sensorval =
@@ -297,7 +297,12 @@ let%client init_client () =
     set_coord ev;
     ((0, 0, 0), 5, (oldx, oldy), (!x, !y))
   in
-    
+
+  (*let replace_child p n =
+    Js.Opt.iter (p##firstChild) (fun c -> Dom.removeChild p c);
+    Dom.appendChild p n
+    in*)
+  
   let html_of_data rl =
     List.map (fun (n,v) ->
       li [pcdata n ; pcdata ": "; pcdata v]) (*(
@@ -313,7 +318,10 @@ let%client init_client () =
     y:= height/2 + int_of_float (yf*.0.1);
     let line = ((0, 0, 0), 1, (oldx, oldy), (!x, !y)) in
     draw ctx line;
-    let slHTML = ul (html_of_data sl) in
+    let slHTML = ul ~a:[a_id "sensorlist"] (html_of_data sl) in
+    let d = Dom_html.document in
+    Dom.removeChild sensors (Js.Opt.get (d##getElementById (Js.string "sensorlist"))
+			       (fun () -> assert false));
     Dom.appendChild
       sensors
       (Eliom_content.Html5.To_dom.of_ul slHTML)
