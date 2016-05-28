@@ -267,7 +267,7 @@ let skeletton bc action =
              h2 [pcdata "Welcome from Nestor !"];
 	     (*div  actionlist ;*)
 	     (*(a wakeup_service [ pcdata "WakeUp"; br () ] ());*)
-	     div ~a:[a_class ["action"]] action_service_button;
+	     (*div ~a:[a_class ["action"]] action_service_button;*)
 	     action_service_ro ;
 	     div ~a:[a_class ["well"]] bc ;
 	     canvas_elt ;
