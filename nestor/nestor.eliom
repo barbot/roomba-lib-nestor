@@ -257,7 +257,7 @@ let skeletton bc action =
 	     (*div  actionlist ;*)
 	     (*(a wakeup_service [ pcdata "WakeUp"; br () ] ());*)
 	     div ~a:[a_class ["action"]] action_service_button;
-	     (*action_service_ro ;*)
+	     action_service_ro ;
 	     div ~a:[a_class ["well"]] bc ;
 	     canvas_elt ;
 	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
@@ -277,7 +277,9 @@ let skeletton bc action =
            ]))
 
 let%client init_client () =
-
+  let xorg = ref 0 in
+  let yorg = ref 0 in
+  
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
   let ctx = canvas##(getContext (Dom_html._2d_)) in
   ctx##.lineCap := Js.string "round";
@@ -286,11 +288,11 @@ let%client init_client () =
   draw ctx ((0, 0, 0), 5, (width, height), (0, height));
   draw ctx ((0, 0, 0), 5, (0, height), (0, 0));
 
-  let x = ref 0 and y = ref 0 in
+  let x = ref (width/2) and y = ref (height/2) in
 
   let set_coord ev =
     let x0, y0 = Dom_html.elementClientPosition canvas in
-    x := ev##.clientX - x0; y := ev##.clientY - y0
+    x := ev##.clientX - x0 + !xorg; y := - ev##.clientY - y0 + !yorg
   in
 
   let compute_line ev =
@@ -301,8 +303,8 @@ let%client init_client () =
 
   let compute_line2 ctx (xf,yf,r) =
     let oldx = !x and oldy = !y in
-    x:= width/2 + int_of_float (xf*.0.2);
-    y:= height/2 + int_of_float (yf*.0.2);
+    x:= width/2 + int_of_float (xf*.0.1);
+    y:= height/2 + int_of_float (yf*.0.1);
     let line = ((0, 0, 0), 1, (oldx, oldy), (!x, !y)) in
     draw ctx line
   in
@@ -347,5 +349,3 @@ let () =
       let _ = [%client (init_client () : unit) ] in
     skeletton [p [pcdata action]] action)*)
 (*) action_services*)
-
-
