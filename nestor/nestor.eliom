@@ -65,7 +65,7 @@ let slth = Lwt_preemptive.detach sleep_thread ()
 let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
 
-let actions = [ "refresh"; "close"; "clean"; "power"; "spot"; "max" ; "dock";
+let actions = [ "wakeup"; "refresh"; "close"; "clean"; "power"; "spot"; "max" ; "dock";
 		"safe"; "stop"; "avance"; "recule"; "droite"; "gauche";
 		"synchronize"]
 
@@ -247,12 +247,13 @@ let skeletton bc action =
            ~css:[["css";"nestor.css"]]
            Html5.F.(body [
              h2 [pcdata "Welcome from Nestor !"];
-	     div ~a:[a_class ["action"]] actionlist ;
-	     div action_service_button;
+	     (*div  actionlist ;*)
+	     (a wakeup_service [ pcdata "WakeUp"; br () ] ());
+	     div ~a:[a_class ["action"]]action_service_button;
 	     action_service_ro ;
 	     div ~a:[a_class ["well"]] bc ;
-	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
 	     canvas_elt
+	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
 (*	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ];
 	     div ~a:[a_class ["image"]] [
 		   img ~alt:("Ocsigen Logo")
@@ -328,16 +329,16 @@ let () =
     ~service:main_service
     (fun () () ->
       let _ = [%client (init_client () : unit) ] in
-      skeletton [p [pcdata "A, B, C..."]] "/");
-  Nestor_app.register ~service:wakeup_service (fun () () ->
+      skeletton [p [pcdata "A, B, C..."]] "/")
+  (*Nestor_app.register ~service:wakeup_service (fun () () ->
     let _ = [%client (init_client () : unit) ] in
-    skeletton [p [pcdata "Waking up!"]] "wakeup");
+    skeletton [p [pcdata "Waking up!"]] "wakeup");*)
     (*List.iter (fun (n,s) ->*)
-  Nestor_app.register
+  (*Nestor_app.register
     ~service:action_service
     (fun action () ->
       let _ = [%client (init_client () : unit) ] in
-      skeletton [p [pcdata action]] action)
+    skeletton [p [pcdata action]] action)*)
 (*) action_services*)
 
 
