@@ -249,10 +249,10 @@ let skeletton bc action =
              h2 [pcdata "Welcome from Nestor !"];
 	     (*div  actionlist ;*)
 	     (a wakeup_service [ pcdata "WakeUp"; br () ] ());
-	     div ~a:[a_class ["action"]]action_service_button;
-	     action_service_ro ;
+	     div ~a:[a_class ["action"]] action_service_button;
+	     (*action_service_ro ;*)
 	     div ~a:[a_class ["well"]] bc ;
-	     canvas_elt
+	     canvas_elt ;
 	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
 (*	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ];
 	     div ~a:[a_class ["image"]] [
