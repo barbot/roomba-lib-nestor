@@ -23,7 +23,6 @@ module Nestor_app =
     struct
       let application_name = "nestor"
     end)
-
     
 let%shared width = 700
 let%shared height = 400
@@ -81,7 +80,7 @@ let action_service =
   (x,Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:[] ())) actions*)
     
 let actions_service_link = 
-  List.map (fun (x) ->
+  List.map (fun x ->
     a action_service [ pcdata x; br () ] x) actions
 
 let action_service_ro =
@@ -179,9 +178,16 @@ let action_handling action =
      end;
   end;
   Lwt.return unit
-      
+
 let%client action_handling_client = ~%(server_function [%derive.json: string] action_handling)
-    
+
+let action_service_button =
+  List.map (fun x ->
+    let onclick_handler = [%client (fun _ ->
+      ignore @@ action_handling_client ~%x)] in
+    button ~a:[a_onclick onclick_handler] [pcdata x;]) actions
+
+  
 let skeletton bc action =
   let sensorval,actionlist =
     alive := true;
@@ -242,6 +248,7 @@ let skeletton bc action =
            Html5.F.(body [
              h2 [pcdata "Welcome from Nestor !"];
 	     div ~a:[a_class ["action"]] actionlist ;
+	     div action_service_button;
 	     action_service_ro ;
 	     div ~a:[a_class ["well"]] bc ;
 	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
