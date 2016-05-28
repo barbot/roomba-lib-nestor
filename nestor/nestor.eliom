@@ -6,10 +6,10 @@
 
 
   type messages =
-    float*float*float
+    float*float*float *
+      ( (string*string) list)
       [@@deriving json]
-
-      
+ 
 ]
 
 let bus = Eliom_bus.create [%derive.json: messages]
@@ -23,22 +23,6 @@ module Nestor_app =
     struct
       let application_name = "nestor"
     end)
-    
-let%shared width = 700
-let%shared height = 400
-
-let%client draw ctx ((r, g, b), size, (x1, y1), (x2, y2)) =
-  let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
-  ctx##.strokeStyle := (Js.string color);
-  ctx##.lineWidth := float size;
-  ctx##beginPath;
-  ctx##(moveTo (float x1) (float y1));
-  ctx##(lineTo (float x2) (float y2));
-  ctx##stroke
-
-let canvas_elt =
-  canvas ~a:[a_width width; a_height height]
-    [pcdata "your browser doesn't support canvas"]
     
 let ro = ref None
 let alive = ref false
@@ -88,14 +72,6 @@ let action_service =
    
 let get_uptime =
   Lwt_process.pread_line ("/usr/bin/uptime",[||])
-	   
-let html_of_data r =
-  List.map (fun (n,v) ->
-    li [pcdata n ; pcdata ": "; pcdata v]  ) (
-    ("posx", Printf.sprintf "%fmm" (!Distance.static_pt).posx )::
-      ("posy", Printf.sprintf "%fmm" (!Distance.static_pt).posy )::
-      ("angle", Printf.sprintf "%frad" (!Distance.static_pt).angle )::
-      (Type_def.print_list (Interface_local.get_state r)))
 
 let svg_of_traj tr =
  (* let coords = List.fold_left
@@ -135,12 +111,14 @@ let action_handling action =
        sync_state cro [1;2;3;43;44;45;106];
        let xc = ref 0.0 and yc = ref 0.0 and rc = ref 0.0 in
        change_callback cro (callbackfun
-			      ~cb:(fun x y r ->
+			      ~cb:(fun x y r rs ->
 				if (abs_float (!xc-.x))
 				  +. (abs_float (!yc-.y))
-				  +. (abs_float (!rc-.r)) > 10.0 then
-				  (xc:=x; yc:=y; rc:=r;
-				   ignore @@ Eliom_bus.write bus (x,y,r)) ) static_pt);
+				  +. (abs_float (!rc-.r)) > 10.0 then begin
+				    xc:=x; yc:=y; rc:=r;
+				    let sl = print_list rs in
+				    ignore @@ Eliom_bus.write bus (x,y,r,sl)
+				    end) static_pt);
        synchronized := true
      end
      | "safe" -> roomba_cmd cro Safe
@@ -194,9 +172,26 @@ let action_service_ro =
   ] 
       ]
 
+let%shared width = 700
+let%shared height = 400
+
+let%client draw ctx ((r, g, b), size, (x1, y1), (x2, y2)) =
+  let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
+  ctx##.strokeStyle := (Js.string color);
+  ctx##.lineWidth := float size;
+  ctx##beginPath;
+  ctx##(moveTo (float x1) (float y1));
+  ctx##(lineTo (float x2) (float y2));
+  ctx##stroke
+
+let canvas_elt =
+  canvas ~a:[a_width width; a_height height]
+    [pcdata "your browser doesn't support canvas"]
+let sensor_div =
+  div [ul []]
     
 let skeletton bc action =
-  let sensorval =
+  (*let sensorval =
     alive := true;
     begin match !ro with
     | None -> 
@@ -218,12 +213,12 @@ let skeletton bc action =
 	 sync_state cro [1;2;3;43;44;45;106];
 	 let xc = ref 0.0 and yc = ref 0.0 and rc = ref 0.0 in
 	 change_callback cro (callbackfun
-				~cb:(fun x y r ->
+				~cb:(fun x y r rs->
 				  if (abs_float (!xc-.x))
 				    +. (abs_float (!yc-.y))
 				    +. (abs_float (!rc-.r)) > 10.0 then
 				    (xc:=x; yc:=y; rc:=r;
-				     ignore @@ Eliom_bus.write bus (x,y,r)) ) static_pt);
+				     ignore @@ Eliom_bus.write bus (x,y,r,print_list rs)) ) static_pt);
 	 synchronized := true
        end
        | "safe" -> roomba_cmd cro Safe
@@ -244,7 +239,7 @@ let skeletton bc action =
        end;
        if not !synchronized then query_list cro [1;2;3;4;5;43;44;45;106;107];
        (html_of_data cro) 
-    end in
+    end in*)
     
   (*close_roomba ro;*)
   
@@ -260,7 +255,8 @@ let skeletton bc action =
 	     action_service_ro ;
 	     div ~a:[a_class ["well"]] bc ;
 	     canvas_elt ;
-	     div ~a:[a_class ["sensor"]] [ul sensorval] ;
+	     sensor_div ;
+	   (* div ~a:[a_class ["sensor"]] [ul sensorval] ;*)
 (*	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ];
 	     div ~a:[a_class ["image"]] [
 		   img ~alt:("Ocsigen Logo")
@@ -281,6 +277,7 @@ let%client init_client () =
   let yorg = ref 0 in
   
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
+  let sensors = Eliom_content.Html5.To_dom.of_div ~%sensor_div in
   let ctx = canvas##(getContext (Dom_html._2d_)) in
   ctx##.lineCap := Js.string "round";
   draw ctx ((0, 0, 0), 5, (0, 0), (width, 0));
@@ -300,13 +297,26 @@ let%client init_client () =
     set_coord ev;
     ((0, 0, 0), 5, (oldx, oldy), (!x, !y))
   in
-
-  let compute_line2 ctx (xf,yf,r) =
+    
+  let html_of_data rl =
+    List.map (fun (n,v) ->
+      li [pcdata n ; pcdata ": "; pcdata v]) (*(
+      ("posx", Printf.sprintf "%fmm" (!Distance.static_pt).posx )::
+	("posy", Printf.sprintf "%fmm" (!Distance.static_pt).posy )::
+					       ("angle", Printf.sprintf "%frad" (!Distance.static_pt).angle )::*)
+	rl
+  in
+  
+  let compute_line2 ctx (xf,yf,r,sl) =
     let oldx = !x and oldy = !y in
     x:= width/2 + int_of_float (xf*.0.1);
     y:= height/2 + int_of_float (yf*.0.1);
     let line = ((0, 0, 0), 1, (oldx, oldy), (!x, !y)) in
-    draw ctx line
+    draw ctx line;
+    let slHTML = ul (html_of_data sl) in
+    Dom.appendChild
+      sensors
+      (Eliom_content.Html5.To_dom.of_ul slHTML)
   in
 
   let line ev =
