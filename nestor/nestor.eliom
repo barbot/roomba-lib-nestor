@@ -69,40 +69,23 @@ let actions = [ "wakeup"; "refresh"; "close"; "clean"; "power"; "spot"; "max" ; 
 		"safe"; "stop"; "avance"; "recule"; "droite"; "gauche";
 		"synchronize"]
 
+  (*
 let wakeup_service =
   Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:["wakeup"] ()
 
 let action_service =
   Eliom_service.App.service ~get_params:(string "action") ~path:[] ()
-    
+  *)    
+
 (*let action_services =
   List.map (fun x ->
   (x,Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:[] ())) actions*)
     
-let actions_service_link = 
+(*let actions_service_link = 
   List.map (fun x ->
-    a action_service [ pcdata x; br () ] x) actions
+  a action_service [ pcdata x; br () ] x) actions*)
 
-let action_service_ro =
-  div [table [
-  tr [ td [ ];
-       td [a action_service [pcdata "^"] "avance"];
-       td [] ;
-       td []; td [a action_service [pcdata "spot"] "spot"];
-     ];
-    tr [
-      td [a action_service [pcdata "<"] "gauche"];
-      td [a action_service [pcdata "o"] "stop"];
-      td [a action_service [pcdata ">"] "droite"];
-      td []; td [a action_service [pcdata "clean"] "clean"];
-    ];
-    tr [ td [ ];
-	 td [a action_service [pcdata "v"] "recule"];
-	 td []; td []; td [a action_service [pcdata "dock"] "dock"];
-       ];
-  ] 
-      ]
-    
+   
 let get_uptime =
   Lwt_process.pread_line ("/usr/bin/uptime",[||])
 	   
@@ -179,17 +162,41 @@ let action_handling action =
   end;
   Lwt.return unit
 
+    
 let%client action_handling_client = ~%(server_function [%derive.json: string] action_handling)
 
-let action_service_button =
-  List.map (fun x ->
-    let onclick_handler = [%client (fun _ ->
-      ignore @@ action_handling_client ~%x)] in
-    button ~a:[a_onclick onclick_handler] [pcdata x;]) actions
+let action_button x y =
+  let onclick_handler = [%client (fun _ ->
+    ignore @@ action_handling_client ~%x)] in
+  button ~a:[a_onclick onclick_handler] [pcdata y;]
 
   
+let action_service_button =
+  List.map (fun x ->action_button x x) actions
+
+let action_service_ro =
+  div [table [
+  tr [ td [];
+       td [action_button "avance" "^"];
+       td [] ;
+       td []; td [action_button "spot" "spot"];
+     ];
+    tr [
+      td [action_button "gauche" "<"];
+      td [action_button "stop" "o"];
+      td [action_button "droite" ">"];
+      td []; td [action_button "clean" "clean"];
+    ];
+    tr [ td [ ];
+	 td [action_button "recule" "v"];
+	 td []; td []; td [action_button "dock"  "dock"];
+       ];
+  ] 
+      ]
+
+    
 let skeletton bc action =
-  let sensorval,actionlist =
+  let sensorval =
     alive := true;
     begin match !ro with
     | None -> 
@@ -197,7 +204,7 @@ let skeletton bc action =
 	 Interface_local.wake_up ();
 	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
     end;
-      [], [(a wakeup_service [ pcdata "WakeUp"; br () ] ())]
+      []
     | Some cro -> 
        
        let open Type_def in
@@ -236,7 +243,7 @@ let skeletton bc action =
        | "stop" -> roomba_cmd cro (Drive (0,0))
        end;
        if not !synchronized then query_list cro [1;2;3;4;5;43;44;45;106;107];
-       (html_of_data cro),(a wakeup_service [ pcdata "WakeUp"; br () ] ())::actions_service_link 
+       (html_of_data cro) 
     end in
     
   (*close_roomba ro;*)
@@ -248,7 +255,7 @@ let skeletton bc action =
            Html5.F.(body [
              h2 [pcdata "Welcome from Nestor !"];
 	     (*div  actionlist ;*)
-	     (a wakeup_service [ pcdata "WakeUp"; br () ] ());
+	     (*(a wakeup_service [ pcdata "WakeUp"; br () ] ());*)
 	     div ~a:[a_class ["action"]] action_service_button;
 	     (*action_service_ro ;*)
 	     div ~a:[a_class ["well"]] bc ;
