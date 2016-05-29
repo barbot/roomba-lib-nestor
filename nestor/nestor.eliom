@@ -9,7 +9,12 @@
     float*float*float *
       ( (string*string) list)
       [@@deriving json]
- 
+
+  type order =
+      Wakeup | Refresh | Close | Synchronize
+    | Safe | Move of int*int
+    | Clean | Power | Spot | Max | Dock
+	[@@deriving json]
 ]
 
 let bus = Eliom_bus.create [%derive.json: messages]
@@ -97,27 +102,27 @@ let action_handling action =
   let xc = ref 0.0 and yc = ref 0.0 and rc = ref 0.0 in
   begin match !ro with
   | None -> 
-     begin if action="wakeup" then
+     begin if action= Wakeup then
 	 Interface_local.wake_up ();
        ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
      end;
   | Some cro -> 
      
      let open Type_def in
-     let open Interface_local in
      let open Distance in
      begin match action with
-     | "/" | "refresh" | "wakeup" ->
-	if not !synchronized then query_list cro [1;2;3;4;5;43;44;45;106;107];
-       callbackfun ~cb:(fun x y r rs ->
+     | Refresh | Wakeup ->
+	if not !synchronized then
+	  Interface_local.query_list cro [1;2;3;4;5;43;44;45;106;107];
+        callbackfun ~cb:(fun x y r rs ->
 	 xc:=x; yc:=y; rc:=r;
 	 let sl = print_list rs in
 	 ignore @@ Eliom_bus.write bus (x,y,r,sl)
-       ) static_pt (get_state cro);
+       ) static_pt ( Interface_local.get_state cro);
        
-     | "synchronize" -> if not !synchronized then begin
-       sync_state cro [1;2;3;43;44;45;106];
-       change_callback cro (callbackfun
+     | Synchronize -> if not !synchronized then begin
+       Interface_local.sync_state cro [1;2;3;43;44;45;106];
+       Interface_local.change_callback cro (callbackfun
 			      ~cb:(fun x y r rs ->
 				if (abs_float (!xc-.x))
 				  +. (abs_float (!yc-.y))
@@ -128,140 +133,76 @@ let action_handling action =
 				    end) static_pt);
        synchronized := true
      end
-     | "safe" -> roomba_cmd cro Safe
-     | "close" -> roomba_cmd cro (Drive (0,0));
-       close_roomba cro;
+     | Safe -> Interface_local.roomba_cmd cro Safe
+     | Close -> Interface_local.roomba_cmd cro (Drive (0,0));
+       Interface_local.close_roomba cro;
        ro := None
-
 	 
-     | "power" -> roomba_cmd cro Power
-     | "max" -> roomba_cmd cro Max
+     | Power -> Interface_local.roomba_cmd cro Power
+     | Max -> Interface_local.roomba_cmd cro Max
 	
-     | "spot" -> roomba_cmd cro Spot
-     | "clean" -> roomba_cmd cro Clean
-     | "dock" -> roomba_cmd cro Dock
+     | Spot -> Interface_local.roomba_cmd cro Spot
+     | Clean -> Interface_local.roomba_cmd cro Clean
+     | Dock -> Interface_local.roomba_cmd cro Dock
 	
-     | "avance" -> roomba_cmd cro (Drive (100,0))
-     | "recule" -> roomba_cmd cro (Drive (-100,0))
-     | "droite" -> roomba_cmd cro (Drive (100,-1))
-     | "gauche" -> roomba_cmd cro (Drive (100,1))
-     | "stop" -> roomba_cmd cro (Drive (0,0))
+     | Move(x,y) -> Interface_local.roomba_cmd cro (Drive (x,y))
      end;
   end;
   Lwt.return unit
 
-let%client action_handling_client = ~%(server_function [%derive.json: string] action_handling)
+let%client action_handling_client = ~%(server_function [%derive.json: order] action_handling)
 
 let action_button x y =
   let onclick_handler = [%client (fun _ ->
     ignore @@ action_handling_client ~%x)] in
   button ~a:[a_onclick onclick_handler] [pcdata y;]
 
-  
+(*  
 let action_service_button =
-  List.map (fun x ->action_button x x) actions
+    List.map (fun x ->action_button x x) actions*)
 
 let action_service_ro =
   div [table [
   tr [ td [];
-       td [action_button "avance" "^"];
+       td [action_button (Move(100,0)) "^"];
        td [] ;
-       td []; td [action_button "spot" "spot"];
-       td [action_button "safe" "safe"];
+       td []; td [action_button Spot "spot"];
+       td [action_button Safe "safe"];
      ];
     tr [
-      td [action_button "gauche" "<"];
-      td [action_button "stop" "o"];
-      td [action_button "droite" ">"];
-      td []; td [action_button "clean" "clean"];
-      td [action_button "close" "close"];
+      td [action_button (Move(100,-1)) "<"];
+      td [action_button (Move(0,0)) "o"];
+      td [action_button (Move(100,1)) ">"];
+      td []; td [action_button Clean "clean"];
+      td [action_button Close "close"];
     ];
     tr [ td [ ];
-	 td [action_button "recule" "v"];
-	 td []; td []; td [action_button "dock"  "dock"];
-	 td [action_button "synchronize" "synchronize"];
+	 td [action_button (Move(-100,0)) "v"];
+	 td []; td []; td [action_button Dock "dock"];
+	 td [action_button Synchronize "synchronize"];
        ];
     tr [
       td [ ];
       td [ ];
       td [ ];
-      td [action_button "refresh" "refresh"];
-      td [action_button "wakeup" "wakeup"];
+            td [ ];
+      td [action_button Refresh "refresh"];
+      td [action_button Wakeup "wakeup"];
        ];
   ] 
       ]
 
+    
 let%shared width = 700
 let%shared height = 400
-
-let%client draw ctx ((r, g, b), size, (x1, y1), (x2, y2)) =
-  let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
-  ctx##.strokeStyle := (Js.string color);
-  ctx##.lineWidth := float size;
-  ctx##beginPath;
-  ctx##(moveTo (float x1) (float y1));
-  ctx##(lineTo (float x2) (float y2));
-  ctx##stroke
-
+    
 let canvas_elt =
-  canvas ~a:[a_width width; a_height height]
+  canvas ~a:[a_width width; a_height height; a_class ["canvas"]]
     [pcdata "your browser doesn't support canvas"]
 let sensor_div =
-  div [ul ~a:[a_id "sensorlist"] []]
+  div ~a:[ a_class ["sensorlistdiv"] ] [ul ~a:[a_id "sensorlist"] []]
     
-let skeletton bc action =
-  (*let sensorval =
-    alive := true;
-    begin match !ro with
-    | None -> 
-       begin if action="wakeup" then
-	 Interface_local.wake_up ();
-	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
-    end;
-      []
-    | Some cro -> 
-       
-       let open Type_def in
-       let open Interface_local in
-       let open Distance in
-  (*let ro = Unix.handle_unix_error init_roomba "/dev/ttyAMA0" in*)
-  (*roomba_cmd ro WakeUp;*)
-       begin match action with
-       | "/" | "refresh" | "wakeup" -> ()
-       | "synchronize" -> if not !synchronized then begin
-	 sync_state cro [1;2;3;43;44;45;106];
-	 let xc = ref 0.0 and yc = ref 0.0 and rc = ref 0.0 in
-	 change_callback cro (callbackfun
-				~cb:(fun x y r rs->
-				  if (abs_float (!xc-.x))
-				    +. (abs_float (!yc-.y))
-				    +. (abs_float (!rc-.r)) > 10.0 then
-				    (xc:=x; yc:=y; rc:=r;
-				     ignore @@ Eliom_bus.write bus (x,y,r,print_list rs)) ) static_pt);
-	 synchronized := true
-       end
-       | "safe" -> roomba_cmd cro Safe
-       | "close" -> roomba_cmd cro (Drive (0,0));
-		    close_roomba cro;
-		    ro := None
-       | "power" -> roomba_cmd cro Power
-       | "spot" -> roomba_cmd cro Spot
-       | "clean" -> roomba_cmd cro Clean
-       | "max" -> roomba_cmd cro Max
-       | "dock" -> roomba_cmd cro Dock
-	  
-       | "avance" -> roomba_cmd cro (Drive (100,0))
-       | "recule" -> roomba_cmd cro (Drive (-100,0))
-       | "droite" -> roomba_cmd cro (Drive (100,-1))
-       | "gauche" -> roomba_cmd cro (Drive (100,1))
-       | "stop" -> roomba_cmd cro (Drive (0,0))
-       end;
-       if not !synchronized then query_list cro [1;2;3;4;5;43;44;45;106;107];
-       (html_of_data cro) 
-    end in*)
-    
-  (*close_roomba ro;*)
-  
+let skeletton () =
   Lwt.return
         (Eliom_tools.F.html
            ~title:"Nestor"
@@ -272,7 +213,6 @@ let skeletton bc action =
 	     (*(a wakeup_service [ pcdata "WakeUp"; br () ] ());*)
 	     (*div ~a:[a_class ["action"]] action_service_button;*)
 	     action_service_ro ;
-	     div ~a:[a_class ["well"]] bc ;
 	     canvas_elt ;
 	     sensor_div ;
 	   (* div ~a:[a_class ["sensor"]] [ul sensorval] ;*)
@@ -291,7 +231,18 @@ let skeletton bc action =
 	     ];*)
            ]))
 
-let%client init_client () =
+[%%client    
+    
+let draw ctx ((r, g, b), size, (x1, y1), (x2, y2)) =
+  let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
+  ctx##.strokeStyle := (Js.string color);
+  ctx##.lineWidth := float size;
+  ctx##beginPath;
+  ctx##(moveTo (float x1) (float y1));
+  ctx##(lineTo (float x2) (float y2));
+  ctx##stroke
+    
+let init_client () =
   let xorg = ref 0 in
   let yorg = ref 0 in
   
@@ -369,13 +320,15 @@ let%client init_client () =
 	      mouseup Dom_html.document >>= line]));
     
   Lwt.async (fun () -> Lwt_stream.iter (compute_line2 ctx) (Eliom_bus.stream ~%bus))
-  
+
+]
+    
 let () =
   Nestor_app.register
     ~service:main_service
     (fun () () ->
       let _ = [%client (init_client () : unit) ] in
-      skeletton [p [pcdata "A, B, C..."]] "/")
+      skeletton ())
   (*Nestor_app.register ~service:wakeup_service (fun () () ->
     let _ = [%client (init_client () : unit) ] in
     skeletton [p [pcdata "Waking up!"]] "wakeup");*)
