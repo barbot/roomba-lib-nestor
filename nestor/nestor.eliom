@@ -126,7 +126,7 @@ let action_handling action =
 			      ~cb:(fun x y r rs ->
 				if (abs_float (!xc-.x))
 				  +. (abs_float (!yc-.y))
-				  +. (abs_float (!rc-.r)) > 10.0 then begin
+				  +. (abs_float 70.0*.(!rc-.r)) > 10.0 then begin
 				    xc:=x; yc:=y; rc:=r;
 				    let sl = print_list rs in
 				    ignore @@ Eliom_bus.write bus (x,y,r,sl)
@@ -240,7 +240,7 @@ let skeletton () =
  let x_of_pt (x,_) =
    (float (!xorg)) +. !scale *. (float x)
  let y_of_pt (_,y) =
-   (float (- !yorg)) +. !scale *. (float y)
+   (float (!yorg)) -. !scale *. (float y)
    
 let draw ctx ((r, g, b), size, pt1, pt2) =
   let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
