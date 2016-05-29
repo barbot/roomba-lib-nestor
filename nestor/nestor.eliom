@@ -124,7 +124,7 @@ let action_handling action =
        Interface_local.change_callback cro (callbackfun
 			        ~cb:(fun x y r rs ->
 				  let time2 = Unix.gettimeofday () in		
-				if time2-. !time > 0.25 then begin
+				if time2-. !time > 0.15 then begin
 				    time := time2;
 				    let sl = print_list rs in
 				    ignore @@ Eliom_bus.write bus (x,y,r,sl)
@@ -326,7 +326,12 @@ let init_client () =
   let poslist = ref [] in
   
   let handle_msg ctx (xf,yf,r,sl) =
-    poslist := (xf,yf,r)::(!poslist);
+    begin match !poslist with
+      (x,y,rl)::_ when x <> xf || y <> xf || rl <> r ->
+	poslist := (xf,yf,r)::(!poslist)
+    | [] -> poslist := [(xf,yf,r)]
+    | _ -> ()
+    end;
     clean ctx;
     compute_line2 ctx !poslist;
     let slHTML = ul ~a:[a_id "sensorlist"] (html_of_data sl) in
