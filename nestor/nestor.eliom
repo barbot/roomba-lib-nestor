@@ -249,11 +249,11 @@ let init_client () =
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
   let sensors = Eliom_content.Html5.To_dom.of_div ~%sensor_div in
   let ctx = canvas##(getContext (Dom_html._2d_)) in
-  ctx##.lineCap := Js.string "round";
+  (*ctx##.lineCap := Js.string "round";
   draw ctx ((0, 0, 0), 5, (0, 0), (width, 0));
   draw ctx ((0, 0, 0), 5, (width, 0), (width, height));
   draw ctx ((0, 0, 0), 5, (width, height), (0, height));
-  draw ctx ((0, 0, 0), 5, (0, height), (0, 0));
+    draw ctx ((0, 0, 0), 5, (0, height), (0, 0));*)
 
   let x = ref (width/2) and y = ref (height/2) in
 
