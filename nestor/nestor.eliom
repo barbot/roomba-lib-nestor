@@ -195,39 +195,11 @@ let%shared width = 700
 let%shared height = 400
     
 let canvas_elt =
-  canvas ~a:[a_width width; a_height height; a_class ["canvas"]]
+  canvas ~a:[a_width width; a_height height;]
     [pcdata "your browser doesn't support canvas"]
 let sensor_div =
   div ~a:[ a_class ["sensorlistdiv"] ] [ul ~a:[a_id "sensorlist"] []]
-    
-let skeletton () =
-  Lwt.return
-        (Eliom_tools.F.html
-           ~title:"Nestor"
-           ~css:[["css";"nestor.css"]]
-           Html5.F.(body [
-             h2 [pcdata "Welcome from Nestor !"];
-	     (*div  actionlist ;*)
-	     (*(a wakeup_service [ pcdata "WakeUp"; br () ] ());*)
-	     (*div ~a:[a_class ["action"]] action_service_button;*)
-	     action_service_ro ;
-	     canvas_elt ;
-	     sensor_div ;
-	   (* div ~a:[a_class ["sensor"]] [ul sensorval] ;*)
-(*	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ];
-	     div ~a:[a_class ["image"]] [
-		   img ~alt:("Ocsigen Logo")
-		       ~src:(make_uri
-			       ~service:(Eliom_service.static_dir ())
-			       ["img/DSC_0983.jpg"])
-		       () ;
-		   img ~alt:("Ocsigen Logo")
-		       ~src:(make_uri
-			       ~service:(Eliom_service.static_dir ())
-			       ["img/DSC_0984.jpg"])
-		       () ;
-	     ];*)
-           ]))
+
 
 [%%client    
 
@@ -270,8 +242,31 @@ let draw_roomba ctx (r,g,b) (x,y,rho) =
   ctx##(lineTo ( !scale *. 170.0 *. (cos rho) +. x_of_pt pt)
 	  (!scale *. 170.0 *. (-.sin rho) +. y_of_pt pt));
   ctx##stroke
+
     
-    
+let compute_line ctx (xf,yf,r) (xf2,yf2,r2) =
+  let line = ((0, 0, 0), 1, (xf, yf), (xf2, yf2)) in
+  draw ctx line
+  
+let compute_line2 ctx l =
+  begin match l with
+    [] -> ()
+  | t::q -> List.fold_left (fun pt1 pt2 ->
+    compute_line ctx pt1 pt2;
+    pt2) t q;
+    draw_roomba ctx (70, 70, 70) t;
+  end
+
+  
+let poslist = ref [0.0,0.0,0.0]
+  
+let draw_all ctx =
+  clean ctx;
+  compute_line2 ctx !poslist
+let drawb () =
+  let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
+  draw_all (canvas##(getContext (Dom_html._2d_)))
+
 let init_client () =
   
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
@@ -308,23 +303,6 @@ let init_client () =
 	rl
   in
   
-  let compute_line ctx (xf,yf,r) (xf2,yf2,r2) =
-    let line = ((0, 0, 0), 1, (xf, yf), (xf2, yf2)) in
-    draw ctx line;
-  in
-
-  let compute_line2 ctx l =
-    begin match l with
-      [] -> ()
-    | t::q -> List.fold_left (fun pt1 pt2 ->
-      compute_line ctx pt1 pt2;
-      pt2) t q;
-      draw_roomba ctx (70, 70, 70) t;
-    end
-  in
-
-  let poslist = ref [] in
-  
   let handle_msg ctx (xf,yf,r,sl) =
     begin match !poslist with
       (x,y,rl)::_ when x <> xf || y <> xf || rl <> r ->
@@ -332,8 +310,7 @@ let init_client () =
     | [] -> poslist := [(xf,yf,r)]
     | _ -> ()
     end;
-    clean ctx;
-    compute_line2 ctx !poslist;
+    draw_all ctx;
     let slHTML = ul ~a:[a_id "sensorlist"] (html_of_data sl) in
     let d = Dom_html.document in
     Dom.removeChild sensors (Js.Opt.get (d##getElementById (Js.string "sensorlist"))
@@ -346,23 +323,67 @@ let init_client () =
 (*  let line ev =
     let v = compute_line ev in
     draw ctx v;
-    Lwt.return () in
-  
+    Lwt.return () in*)
+
+  let xmouse = ref 0 and ymouse = ref 0 in
+  let translate ev =
+    xorg := !xorg + ev##.clientX - !xmouse;
+    yorg := !yorg + ev##.clientY - !ymouse;
+    xmouse := ev##.clientX;
+    ymouse := ev##.clientY;
+    drawb ();
+    Lwt.return ()
+  in
+    
   Lwt.async (fun () ->
     let open Lwt_js_events in
     mousedowns canvas
       (fun ev _ ->
-         set_coord ev; line ev >>= fun () ->
-           Lwt.pick
-             [mousemoves Dom_html.document (fun x _ -> line x);
-    mouseup Dom_html.document >>= line]));*)
+	xmouse := ev##.clientX;
+	ymouse := ev##.clientY;
+        Lwt.pick
+          [mousemoves Dom_html.document (fun x _ -> translate x);
+	   mouseup Dom_html.document >>= translate]));
     
   Lwt.async (fun () -> Lwt_stream.iter (handle_msg ctx) (Eliom_bus.stream ~%bus));
 
+  drawb ();
   ignore @@ action_handling_client Refresh
-
 ]
-    
+
+let skeletton () =
+  Lwt.return
+        (Eliom_tools.F.html
+           ~title:"Nestor"
+           ~css:[["css";"nestor.css"]]
+           Html5.F.(body [
+             h2 [pcdata "Welcome from Nestor !"];
+	     (*div  actionlist ;*)
+	     (*(a wakeup_service [ pcdata "WakeUp"; br () ] ());*)
+	     (*div ~a:[a_class ["action"]] action_service_button;*)
+	     action_service_ro ;
+	     (div ~a:[a_class ["canvas"]] [
+	       canvas_elt ; br ();
+	       button ~a:[a_onclick [%client fun _ -> (scale := !scale /. 1.2; drawb ()) ]] [pcdata "-";];
+	       button ~a:[a_onclick [%client fun _ -> (scale := 1.2*. !scale; drawb ()) ]] [pcdata "+";];
+	     ]);
+	     sensor_div ;
+	   (* div ~a:[a_class ["sensor"]] [ul sensorval] ;*)
+(*	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ];
+	     div ~a:[a_class ["image"]] [
+		   img ~alt:("Ocsigen Logo")
+		       ~src:(make_uri
+			       ~service:(Eliom_service.static_dir ())
+			       ["img/DSC_0983.jpg"])
+		       () ;
+		   img ~alt:("Ocsigen Logo")
+		       ~src:(make_uri
+			       ~service:(Eliom_service.static_dir ())
+			       ["img/DSC_0984.jpg"])
+		       () ;
+	     ];*)
+           ]))
+      
 let () =
   Nestor_app.register
     ~service:main_service
