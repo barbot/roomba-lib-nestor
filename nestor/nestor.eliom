@@ -238,10 +238,15 @@ let skeletton () =
  let scale = ref (0.05)
 
  let x_of_pt (x,_) =
-   (float (!xorg)) +. !scale *. (float x)
+   (float (!xorg)) +. !scale *. x
  let y_of_pt (_,y) =
-   (float (!yorg)) -. !scale *. (float y)
-   
+   (float (!yorg)) -. !scale *. y
+
+ let clean ctx =
+   let color = CSS.Color.string_of_t (CSS.Color.rgb 200 200 200) in
+   ctx##.fillStyle := (Js.string color);
+   ctx##(fillRect 0.0 0.0 (float width) (float height))
+     
 let draw ctx ((r, g, b), size, pt1, pt2) =
   let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
   ctx##.strokeStyle := (Js.string color);
@@ -251,7 +256,8 @@ let draw ctx ((r, g, b), size, pt1, pt2) =
   ctx##(lineTo (x_of_pt pt2) (y_of_pt pt2));
   ctx##stroke
 
-let draw_roomba ctx (r,g,b) pt rho =
+let draw_roomba ctx (r,g,b) (x,y,rho) =
+  let pt = (x,y) in
   let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
   let color2 = CSS.Color.string_of_t (CSS.Color.rgb 0 0 0) in
   ctx##.fillStyle := (Js.string color);
@@ -279,8 +285,6 @@ let init_client () =
   draw ctx ((0, 0, 0), 5, (width, height), (0, height));
     draw ctx ((0, 0, 0), 5, (0, height), (0, 0));*)
 
-  let x = ref (width/2) and y = ref (height/2) in
-
   (*let set_coord ev =
     let x0, y0 = Dom_html.elementClientPosition canvas in
     x := ev##.clientX - x0 + !xorg; y := - ev##.clientY - y0 + !yorg
@@ -306,13 +310,27 @@ let init_client () =
 	rl
   in
   
-  let compute_line2 ctx (xf,yf,r,sl) =
-    let oldx = !x and oldy = !y in
-    x:= int_of_float xf;
-    y:= int_of_float yf;
-    let line = ((0, 0, 0), 1, (oldx, oldy), (!x, !y)) in
+  let compute_line ctx (xf,yf,r) (xf2,yf2,r2) =
+    let line = ((0, 0, 0), 1, (xf, yf), (xf2, yf2)) in
     draw ctx line;
-    draw_roomba ctx (70, 70, 70) (!x, !y) r;
+  in
+
+  let compute_line2 ctx l =
+    begin match l with
+      [] -> ()
+    | t::q -> List.fold_left (fun pt1 pt2 ->
+      compute_line ctx pt1 pt2;
+      pt2) t q;
+      draw_roomba ctx (70, 70, 70) t;
+    end
+  in
+
+  let poslist = ref [] in
+  
+  let handle_msg ctx (xf,yf,r,sl) =
+    poslist := (xf,yf,r)::(!poslist);
+    clean ctx;
+    compute_line2 ctx !poslist;
     let slHTML = ul ~a:[a_id "sensorlist"] (html_of_data sl) in
     let d = Dom_html.document in
     Dom.removeChild sensors (Js.Opt.get (d##getElementById (Js.string "sensorlist"))
@@ -320,10 +338,6 @@ let init_client () =
     Dom.appendChild
       sensors
       (Eliom_content.Html5.To_dom.of_ul slHTML)
-  in
-
-  let handle_msg ctx msg =
-    compute_line2 ctx msg
   in
   
 (*  let line ev =
