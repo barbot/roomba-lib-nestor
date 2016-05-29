@@ -99,7 +99,7 @@ let svg_of_traj tr =
     
 let action_handling action =
   alive := true;
-  let xc = ref 0.0 and yc = ref 0.0 and rc = ref 0.0 in
+  let time = ref 0.0 in
   begin match !ro with
   | None -> 
      begin if action= Wakeup then
@@ -115,7 +115,6 @@ let action_handling action =
 	if not !synchronized then
 	  Interface_local.query_list cro [1;2;3;4;5;43;44;45;106;107];
         callbackfun ~cb:(fun x y r rs ->
-	 xc:=x; yc:=y; rc:=r;
 	 let sl = print_list rs in
 	 ignore @@ Eliom_bus.write bus (x,y,r,sl)
        ) static_pt ( Interface_local.get_state cro);
@@ -123,11 +122,10 @@ let action_handling action =
      | Synchronize -> if not !synchronized then begin
        Interface_local.sync_state cro [1;2;3;43;44;45;106];
        Interface_local.change_callback cro (callbackfun
-			      ~cb:(fun x y r rs ->
-				if (abs_float (!xc-.x))
-				  +. (abs_float (!yc-.y))
-				  +. (abs_float 70.0*.(!rc-.r)) > 10.0 then begin
-				    xc:=x; yc:=y; rc:=r;
+			        ~cb:(fun x y r rs ->
+				  let time2 = Unix.gettimeofday () in		
+				if time2-. !time > 0.25 then begin
+				    time := time2;
 				    let sl = print_list rs in
 				    ignore @@ Eliom_bus.write bus (x,y,r,sl)
 				    end) static_pt);
