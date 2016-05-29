@@ -240,7 +240,7 @@ let skeletton () =
  let x_of_pt (x,_) =
    (float (!xorg)) +. !scale *. (float x)
  let y_of_pt (_,y) =
-   (float (!yorg)) +. !scale *. (float y)
+   (float (- !yorg)) +. !scale *. (float y)
    
 let draw ctx ((r, g, b), size, pt1, pt2) =
   let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
@@ -255,15 +255,15 @@ let draw_roomba ctx (r,g,b) pt rho =
   let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
   ctx##.strokeStyle := (Js.string color);
   let color2 = CSS.Color.string_of_t (CSS.Color.rgb 0 0 0) in
-  ctx##.strokeStyle := (Js.string color);
   ctx##.lineWidth := float 2;
   ctx##beginPath;
   ctx##(arc (x_of_pt pt) (y_of_pt pt) (!scale *. 170.) 0.0 6.28318530717958 (Js.bool true));
   ctx##fill;
+  ctx##.strokeStyle := (Js.string color2);
   ctx##beginPath;
   ctx##(moveTo (x_of_pt pt) (y_of_pt pt));
   ctx##(lineTo ( !scale *. 170.0 *. (cos rho) +. x_of_pt pt)
-	  (!scale *. 170.0 *. (sin rho) +. y_of_pt pt));
+	  (!scale *. 170.0 *. (-.sin rho) +. y_of_pt pt));
   ctx##stroke
     
     
