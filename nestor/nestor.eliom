@@ -170,9 +170,9 @@ let action_service_ro =
        td [action_button Safe "safe"];
      ];
     tr [
-      td [action_button (Move(100,-1)) "<"];
+      td [action_button (Move(100,1)) "<"];
       td [action_button (Move(0,0)) "o"];
-      td [action_button (Move(100,1)) ">"];
+      td [action_button (Move(100,-1)) ">"];
       td []; td [action_button Clean "clean"];
       td [action_button Close "close"];
     ];
@@ -285,7 +285,7 @@ let init_client () =
   let compute_line2 ctx (xf,yf,r,sl) =
     let oldx = !x and oldy = !y in
     x:= width/2 + int_of_float (xf*.0.1);
-    y:= height/2 + int_of_float (yf*.0.1);
+    y:= height/2 + int_of_float (-.yf*.0.1);
     let line = ((0, 0, 0), 1, (oldx, oldy), (!x, !y)) in
     draw ctx line;
     let slHTML = ul ~a:[a_id "sensorlist"] (html_of_data sl) in
