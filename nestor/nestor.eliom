@@ -254,6 +254,8 @@ let draw ctx ((r, g, b), size, pt1, pt2) =
 let draw_roomba ctx (r,g,b) pt rho =
   let color = CSS.Color.string_of_t (CSS.Color.rgb r g b) in
   ctx##.strokeStyle := (Js.string color);
+  let color2 = CSS.Color.string_of_t (CSS.Color.rgb 0.0 0.0 0.0) in
+  ctx##.strokeStyle := (Js.string color);
   ctx##.lineWidth := float 2;
   ctx##beginPath;
   ctx##(arc (x_of_pt pt) (y_of_pt pt) (!scale *. 170.) 0.0 6.28318530717958 (Js.bool true));
@@ -309,7 +311,7 @@ let init_client () =
     y:= int_of_float yf;
     let line = ((0, 0, 0), 1, (oldx, oldy), (!x, !y)) in
     draw ctx line;
-    draw_roomba ctx (0, 0, 0) (!x, !y) r;
+    draw_roomba ctx (0.5, 0.5, 0.5) (!x, !y) r;
     let slHTML = ul ~a:[a_id "sensorlist"] (html_of_data sl) in
     let d = Dom_html.document in
     Dom.removeChild sensors (Js.Opt.get (d##getElementById (Js.string "sensorlist"))
