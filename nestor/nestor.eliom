@@ -4,17 +4,23 @@
   open Eliom_content.Html5.D
   open Lwt
 
+  type order =
+      Wakeup | Refresh | Close | Synchronize | Stop_syn
+    | Safe | Move of int*int
+    | Clean | Power | Spot | Max | Dock
+	[@@deriving json]
+
+  type server_state =
+      Disconnected
+    | Connected of bool 
+    | Synchronized of bool
+	[@@deriving json]
 
   type messages =
     float*float*float *
       ( (string*string) list)
       [@@deriving json]
 
-  type order =
-      Wakeup | Refresh | Close | Synchronize
-    | Safe | Move of int*int
-    | Clean | Power | Spot | Max | Dock
-	[@@deriving json]
 ]
 
 let bus = Eliom_bus.create [%derive.json: messages]
@@ -32,6 +38,7 @@ module Nestor_app =
 let ro = ref None
 let alive = ref false
 let synchronized = ref false
+let isActive = ref false
   
 let rec sleep_thread () =
   while true do 
@@ -39,11 +46,11 @@ let rec sleep_thread () =
     match !ro with
       None -> ()
     | Some cro when not !alive -> (
-      Interface_local.roomba_cmd cro (Type_def.Drive (0,0));
       if !synchronized then begin
 	Interface_local.stop_sync cro;
 	synchronized := false;
       end;
+      isActive := false;
       Interface_local.close_roomba cro;
       ro := None;)
     | _ -> alive := false
@@ -53,49 +60,16 @@ let slth = Lwt_preemptive.detach sleep_thread ()
     
 let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
-
-let actions = [ "wakeup"; "refresh"; "close"; "clean"; "power"; "spot"; "max" ; "dock";
-		"safe"; "stop"; "avance"; "recule"; "droite"; "gauche";
-		"synchronize"]
-
-  (*
-let wakeup_service =
-  Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:["wakeup"] ()
-
-let action_service =
-  Eliom_service.App.service ~get_params:(string "action") ~path:[] ()
-  *)    
-
-(*let action_services =
-  List.map (fun x ->
-  (x,Eliom_service.App.service  ~get_params:Eliom_parameter.unit ~path:[] ())) actions*)
-    
-(*let actions_service_link = 
-  List.map (fun x ->
-  a action_service [ pcdata x; br () ] x) actions*)
-
    
 let get_uptime =
   Lwt_process.pread_line ("/usr/bin/uptime",[||])
 
-let svg_of_traj tr =
- (* let coords = List.fold_left
-    (fun x y -> Printf.sprintf "%s %f %f" x y.Distance.posx y.Distance.posy) "" tr in
-  let img = "<svg viewBox = \"0 0 200 200\" version = \"1.1\">
-    <polyline points = \""^coords^"\" fill = \"none\" stroke = \"black\" stroke-width = \"3\"/>
-    </svg>" in*)
-  let lcoord = List.map (fun x ->  (200.0+.0.1*.x.Distance.posx, 200.0-.0.1*.x.Distance.posy)) tr in
-  
-  svg ~a:[
-    Eliom_content.Svg.F.a_viewbox (0.0, 0.0, 400.0, 400.0);
-    Eliom_content.Svg.F.a_height (400.0,Some `Px);
-    Eliom_content.Svg.F.a_width (400.0,Some `Px);
-  ]  
-    [ Eliom_content.Svg.F.polyline ~a:[
-      Eliom_content.Svg.F.a_points lcoord;
-      Eliom_content.Svg.F.a_style "fill:none;stroke:black;stroke-width:3"
-    ] []
-  ]
+let get_state () =
+  match !ro with
+    None -> Lwt.return Disconnected
+  | Some _ when !synchronized -> Lwt.return @@ Synchronized !isActive
+  | _ -> Lwt.return @@ Connected !isActive
+     
     
 let action_handling action =
   alive := true;
@@ -105,6 +79,7 @@ let action_handling action =
      begin if action= Wakeup then
 	 Interface_local.wake_up ();
        ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
+       isActive := false;
      end;
   | Some cro -> 
      
@@ -131,17 +106,24 @@ let action_handling action =
 				    end) static_pt);
        synchronized := true
      end
-     | Safe -> Interface_local.roomba_cmd cro Safe
-     | Close -> Interface_local.roomba_cmd cro (Drive (0,0));
-       Interface_local.close_roomba cro;
+     | Stop_syn -> Interface_local.stop_sync cro;
+	synchronized := false;
+     | Safe -> Interface_local.roomba_cmd cro Safe;
+       isActive := true;
+	
+     | Close -> Interface_local.close_roomba cro;
        ro := None
 	 
      | Power -> Interface_local.roomba_cmd cro Power
-     | Max -> Interface_local.roomba_cmd cro Max
+     | Max -> Interface_local.roomba_cmd cro Max;
+       isActive := false;
 	
-     | Spot -> Interface_local.roomba_cmd cro Spot
-     | Clean -> Interface_local.roomba_cmd cro Clean
-     | Dock -> Interface_local.roomba_cmd cro Dock
+     | Spot -> Interface_local.roomba_cmd cro Spot;
+	isActive := false;
+     | Clean -> Interface_local.roomba_cmd cro Clean;
+       isActive := false;
+     | Dock -> Interface_local.roomba_cmd cro Dock;
+       isActive := false;
 	
      | Move(x,y) -> Interface_local.roomba_cmd cro (Drive (x,y))
      end;
@@ -149,8 +131,9 @@ let action_handling action =
   Lwt.return unit
 
 let%client action_handling_client = ~%(server_function [%derive.json: order] action_handling)
-
-let action_button x y =
+let%client get_state_client () = ~%(server_function [%derive.json: unit] get_state)
+  
+let rec action_button x y =
   let onclick_handler = [%client (fun _ ->
     ignore @@ action_handling_client ~%x)] in
   button ~a:[a_onclick onclick_handler] [pcdata y;]
@@ -158,15 +141,20 @@ let action_button x y =
 (*  
 let action_service_button =
     List.map (fun x ->action_button x x) actions*)
-
-let action_service_ro =
+    
+let action_service_ro = function
+  Disconnected -> div [table [
+    tr [ td [];td [];td [];td [];td [];td []; ];
+    tr [ td [];td [];td [];td [];td [];td []; ];
+    tr [ td [];td [];td [];td [];td [];td []; ];
+    tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];
+	 td [action_button Wakeup "wakeup"];];
+  ] ]
+  | Connected true ->  
   div [table [
-  tr [ td [];
-       td [action_button (Move(100,0)) "^"];
-       td [] ;
-       td []; td [action_button Spot "spot"];
-       td [action_button Safe "safe"];
-     ];
+    tr [ td [];td [action_button (Move(100,0)) "^"];td [];
+	 td [];td [action_button Spot "spot"];
+	 td [];];
     tr [
       td [action_button (Move(100,1)) "<"];
       td [action_button (Move(0,0)) "o"];
@@ -174,21 +162,56 @@ let action_service_ro =
       td []; td [action_button Clean "clean"];
       td [action_button Close "close"];
     ];
-    tr [ td [ ];
-	 td [action_button (Move(-100,0)) "v"];
-	 td []; td []; td [action_button Dock "dock"];
+    tr [ td [];td [action_button (Move(-100,0)) "v"];
+	 td []; td [];td [action_button Dock "dock"];
 	 td [action_button Synchronize "synchronize"];
        ];
+    tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];td [];];
+  ] ]
+  | Connected false ->  
+  div [table [
+    tr [ td [];td [];td [];td [];td [action_button Spot "spot"];
+	 td [action_button Safe "safe"];];
     tr [
-      td [ ];
-      td [ ];
-      td [ ];
-            td [ ];
-      td [action_button Refresh "refresh"];
-      td [action_button Wakeup "wakeup"];
+      td [];td [];td [];td []; td [action_button Clean "clean"];
+      td [action_button Close "close"];
+    ];
+    tr [ td [];td [];td []; td [];td [action_button Dock "dock"];
+	 td [action_button Stop_syn "synchronize"];
        ];
-  ] 
-      ]
+    tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];td [];];
+  ] ]
+  | Synchronized true ->  
+  div [table [
+    tr [ td [];td [action_button (Move(100,0)) "^"];td [];
+	 td [];td [action_button Spot "spot"];
+	 td [];];
+    tr [
+      td [action_button (Move(100,1)) "<"];
+      td [action_button (Move(0,0)) "o"];
+      td [action_button (Move(100,-1)) ">"];
+      td []; td [action_button Clean "clean"];
+      td [action_button Close "close"];
+    ];
+    tr [ td [];td [action_button (Move(-100,0)) "v"];
+	 td []; td [];td [action_button Dock "dock"];
+	 td [action_button Synchronize "Unsynchronize"];
+       ];
+    tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];td [];];
+  ] ]
+  | Synchronized false ->
+     div [table [
+    tr [ td [];td [];td [];td [];td [action_button Spot "spot"];
+	 td [action_button Safe "safe"];];
+    tr [
+      td [];td [];td [];td []; td [action_button Clean "clean"];
+      td [action_button Close "close"];
+    ];
+    tr [ td [];td [];td []; td [];td [action_button Dock "dock"];
+	 td [action_button Synchronize "synchronize"];
+       ];
+    tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];td [];];
+  ] ]
 
     
 let%shared width = 700
@@ -199,9 +222,10 @@ let canvas_elt =
     [pcdata "your browser doesn't support canvas"]
 let sensor_div =
   div ~a:[ a_class ["sensorlistdiv"] ] [ul ~a:[a_id "sensorlist"] []]
+let button_div =
+  div ~a:[ a_class ["buttondiv"]] [table ~a:[a_id "buttonid"] [] ]
 
-
-[%%client    
+[%%client
 
  let xorg = ref (width/2)
  let yorg = ref (height/2)
@@ -254,7 +278,7 @@ let compute_line2 ctx l =
   | t::q -> List.fold_left (fun pt1 pt2 ->
     compute_line ctx pt1 pt2;
     pt2) t q;
-    draw_roomba ctx (70, 70, 70) t;
+    draw_roomba ctx (150, 150, 150) t;
   end
 
   
@@ -352,6 +376,7 @@ let init_client () =
 ]
 
 let skeletton () =
+  let%lwt state = get_state () in
   Lwt.return
         (Eliom_tools.F.html
            ~title:"Nestor"
@@ -361,7 +386,8 @@ let skeletton () =
 	     (*div  actionlist ;*)
 	     (*(a wakeup_service [ pcdata "WakeUp"; br () ] ());*)
 	     (*div ~a:[a_class ["action"]] action_service_button;*)
-	     action_service_ro ;
+	     action_service_ro state;
+	     button_div;
 	     (div ~a:[a_class ["canvas"]] [
 	       canvas_elt ; br ();
 	       button ~a:[a_onclick [%client fun _ -> (scale := !scale /. 1.2; drawb ()) ]] [pcdata "-";];
@@ -389,14 +415,4 @@ let () =
     ~service:main_service
     (fun () () ->
       let _ = [%client (init_client () : unit) ] in
-      skeletton ())
-  (*Nestor_app.register ~service:wakeup_service (fun () () ->
-    let _ = [%client (init_client () : unit) ] in
-    skeletton [p [pcdata "Waking up!"]] "wakeup");*)
-    (*List.iter (fun (n,s) ->*)
-  (*Nestor_app.register
-    ~service:action_service
-    (fun action () ->
-      let _ = [%client (init_client () : unit) ] in
-    skeletton [p [pcdata action]] action)*)
-(*) action_services*)
+      skeletton ()) 

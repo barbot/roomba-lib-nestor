@@ -40,9 +40,9 @@ let convertbyte x =
 
 let wake_up () =
   ignore (Sys.command "echo 0 > /sys/class/gpio/gpio4/value");
-  ignore (Unix.select [] [] [] 0.05);
+  ignore (Unix.select [] [] [] 0.1);
   ignore (Sys.command "echo 1 > /sys/class/gpio/gpio4/value");
-  ignore (Unix.select [] [] [] 0.05)
+  ignore (Unix.select [] [] [] 0.1)
 
     
 let roomba_cmd_string = function
