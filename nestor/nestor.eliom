@@ -133,88 +133,8 @@ let action_handling action =
   Lwt.return unit
 
 let%client action_handling_client = ~%(server_function [%derive.json: order] action_handling)
-let%client get_state_client () = ~%(server_function [%derive.json: unit] get_state)
-  
-let rec action_button x y =
-  let onclick_handler = [%client (fun _ ->
-    ignore @@ action_handling_client ~%x)] in
-  button ~a:[a_onclick onclick_handler] [pcdata y;]
+let%client get_state_client = ~%(server_function [%derive.json: unit] get_state)
 
-(*  
-let action_service_button =
-    List.map (fun x ->action_button x x) actions*)
-    
-let action_service_ro = function
-  Disconnected -> div [table [
-    tr [ td [];td [];td [];td [];td [];td []; ];
-    tr [ td [];td [];td [];td [];td [];td []; ];
-    tr [ td [];td [];td [];td [];td [];td []; ];
-    tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];
-	 td [action_button Wakeup "wakeup"];];
-  ] ]
-  | Connected true ->  
-  div [table [
-    tr [ td [];td [action_button (Move(100,0)) "^"];td [];
-	 td [];td [action_button Spot "spot"];
-	 td [];];
-    tr [
-      td [action_button (Move(100,1)) "<"];
-      td [action_button (Move(0,0)) "o"];
-      td [action_button (Move(100,-1)) ">"];
-      td []; td [action_button Clean "clean"];
-      td [action_button Close "close"];
-    ];
-    tr [ td [];td [action_button (Move(-100,0)) "v"];
-	 td []; td [];td [action_button Dock "dock"];
-	 td [action_button Synchronize "synchronize"];
-       ];
-    tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];td [];];
-  ] ]
-  | Connected false ->  
-  div [table [
-    tr [ td [];td [];td [];td [];td [action_button Spot "spot"];
-	 td [action_button Safe "safe"];];
-    tr [
-      td [];td [];td [];td []; td [action_button Clean "clean"];
-      td [action_button Close "close"];
-    ];
-    tr [ td [];td [];td []; td [];td [action_button Dock "dock"];
-	 td [action_button Stop_syn "synchronize"];
-       ];
-    tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];td [];];
-  ] ]
-  | Synchronized true ->  
-  div [table [
-    tr [ td [];td [action_button (Move(100,0)) "^"];td [];
-	 td [];td [action_button Spot "spot"];
-	 td [];];
-    tr [
-      td [action_button (Move(100,1)) "<"];
-      td [action_button (Move(0,0)) "o"];
-      td [action_button (Move(100,-1)) ">"];
-      td []; td [action_button Clean "clean"];
-      td [action_button Close "close"];
-    ];
-    tr [ td [];td [action_button (Move(-100,0)) "v"];
-	 td []; td [];td [action_button Dock "dock"];
-	 td [action_button Synchronize "Unsynchronize"];
-       ];
-    tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];td [];];
-  ] ]
-  | Synchronized false ->
-     div [table [
-    tr [ td [];td [];td [];td [];td [action_button Spot "spot"];
-	 td [action_button Safe "safe"];];
-    tr [
-      td [];td [];td [];td []; td [action_button Clean "clean"];
-      td [action_button Close "close"];
-    ];
-    tr [ td [];td [];td []; td [];td [action_button Dock "dock"];
-	 td [action_button Synchronize "synchronize"];
-       ];
-    tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];td [];];
-  ] ]
-    
 let%shared width = 700
 let%shared height = 400
     
@@ -223,11 +143,92 @@ let canvas_elt =
     [pcdata "your browser doesn't support canvas"]
 let sensor_div =
   div ~a:[ a_class ["sensorlistdiv"] ] [ul ~a:[a_id "sensorlist"] []]
-let button_div =
+let%shared button_div =
   div ~a:[ a_class ["buttondiv"]] [table ~a:[a_id "buttonid"] [] ]
 
 [%%client
 
+let rec action_button f x y =
+  let onclick_handler = (fun _ ->
+    ignore @@ action_handling_client x;ignore @@ f ()) in
+  button ~a:[a_onclick onclick_handler] [pcdata y;]
+
+(*  
+let action_service_button =
+    List.map (fun x ->action_button x x) actions*)
+    
+let action_service_ro f = function
+  Disconnected -> table ~a:[a_id "buttonid"] [
+    tr [ td [];td [];td [];td [];td [];td []; ];
+    tr [ td [];td [];td [];td [];td [];td []; ];
+    tr [ td [];td [];td [];td [];td [];td []; ];
+    tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];
+	 td [action_button f Wakeup "wakeup"];];
+  ] 
+  | Connected true ->  
+  table ~a:[a_id "buttonid"] [
+    tr [ td [];td [action_button f (Move(100,0)) "^"];td [];
+	 td [];td [action_button f Spot "spot"];
+	 td [];];
+    tr [
+      td [action_button f (Move(100,1)) "<"];
+      td [action_button f (Move(0,0)) "o"];
+      td [action_button f (Move(100,-1)) ">"];
+      td []; td [action_button f Clean "clean"];
+      td [action_button f Close "close"];
+    ];
+    tr [ td [];td [action_button f (Move(-100,0)) "v"];
+	 td []; td [];td [action_button f Dock "dock"];
+	 td [action_button f Synchronize "synchronize"];
+       ];
+    tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
+  ]
+  | Connected false ->  
+  table ~a:[a_id "buttonid"] [
+    tr [ td [];td [];td [];td [];td [action_button f Spot "spot"];
+	 td [action_button f Safe "safe"];];
+    tr [
+      td [];td [];td [];td []; td [action_button f Clean "clean"];
+      td [action_button f Close "close"];
+    ];
+    tr [ td [];td [];td []; td [];td [action_button f Dock "dock"];
+	 td [action_button f Stop_syn "synchronize"];
+       ];
+    tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
+  ]
+  | Synchronized true ->  
+  table ~a:[a_id "buttonid"] [
+    tr [ td [];td [action_button f (Move(100,0)) "^"];td [];
+	 td [];td [action_button f Spot "spot"];
+	 td [];];
+    tr [
+      td [action_button f (Move(100,1)) "<"];
+      td [action_button f (Move(0,0)) "o"];
+      td [action_button f (Move(100,-1)) ">"];
+      td []; td [action_button f Clean "clean"];
+      td [action_button f Close "close"];
+    ];
+    tr [ td [];td [action_button f (Move(-100,0)) "v"];
+	 td []; td [];td [action_button f Dock "dock"];
+	 td [action_button f Synchronize "Unsynchronize"];
+       ];
+    tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
+  ]
+  | Synchronized false ->
+     table ~a:[a_id "buttonid"] [
+    tr [ td [];td [];td [];td [];td [action_button f Spot "spot"];
+	 td [action_button f Safe "safe"];];
+    tr [
+      td [];td [];td [];td []; td [action_button f Clean "clean"];
+      td [action_button f Close "close"];
+    ];
+    tr [ td [];td [];td []; td [];td [action_button f Dock "dock"];
+	 td [action_button f Synchronize "synchronize"];
+       ];
+    tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
+     ]
+       
+    
  let xorg = ref (width/2)
  let yorg = ref (height/2)
  let scale = ref (0.05)
@@ -276,7 +277,7 @@ let compute_line ctx (xf,yf,r) (xf2,yf2,r2) =
 let compute_line2 ctx l =
   begin match l with
     [] -> ()
-  | t::q -> List.fold_left (fun pt1 pt2 ->
+  | t::q -> ignore @@ List.fold_left (fun pt1 pt2 ->
     compute_line ctx pt1 pt2;
     pt2) t q;
     draw_roomba ctx (150, 150, 150) t;
@@ -296,6 +297,7 @@ let init_client () =
   
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
   let sensors = Eliom_content.Html5.To_dom.of_div ~%sensor_div in
+  let buttons = Eliom_content.Html5.To_dom.of_div button_div in
   let ctx = canvas##(getContext (Dom_html._2d_)) in
   (*ctx##.lineCap := Js.string "round";
   draw ctx ((0, 0, 0), 5, (0, 0), (width, 0));
@@ -336,7 +338,7 @@ let init_client () =
     | _ -> ()
     end;
     draw_all ctx;
-    let slHTML = ul ~a:[a_id "sensorlist"] (html_of_data sl) in
+    let slHTML = ul ~a:[a_id "buttonid"] (html_of_data sl) in
     let d = Dom_html.document in
     Dom.removeChild sensors (Js.Opt.get (d##getElementById (Js.string "sensorlist"))
 			       (fun () -> assert false));
@@ -344,7 +346,19 @@ let init_client () =
       sensors
       (Eliom_content.Html5.To_dom.of_ul slHTML)
   in
-  
+
+  let rec update_state () =
+    let%lwt state = get_state_client () in
+    let tabHTML = action_service_ro update_state state in
+    let d = Dom_html.document in
+    Dom.removeChild buttons (Js.Opt.get (d##getElementById (Js.string "buttonid"))
+			       (fun () -> assert false));
+    Dom.appendChild
+      buttons
+      (Eliom_content.Html5.To_dom.of_table tabHTML);
+    Lwt.return ()
+  in
+      
 (*  let line ev =
     let v = compute_line ev in
     draw ctx v;
@@ -373,11 +387,11 @@ let init_client () =
   Lwt.async (fun () -> Lwt_stream.iter (handle_msg ctx) (Eliom_bus.stream ~%bus));
 
   drawb ();
-  ignore @@ action_handling_client Refresh
+  ignore @@ action_handling_client Refresh;
+  ignore @@ update_state ();
 ]
 
 let skeletton () =
-  let%lwt state = get_state () in
   Lwt.return
         (Eliom_tools.F.html
            ~title:"Nestor"
@@ -387,7 +401,6 @@ let skeletton () =
 	     (*div  actionlist ;*)
 	     (*(a wakeup_service [ pcdata "WakeUp"; br () ] ());*)
 	     (*div ~a:[a_class ["action"]] action_service_button;*)
-	     action_service_ro state;
 	     button_div;
 	     (div ~a:[a_class ["canvas"]] [
 	       canvas_elt ; br ();
