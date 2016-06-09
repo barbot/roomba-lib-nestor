@@ -349,8 +349,8 @@ let init_client () =
   in
 
   let rec update_state () =
-    (*let%lwt state = get_state_client () in*)
-    let tabHTML = action_service_ro update_state Disconnected in
+    let%lwt state = get_state_client () in
+    let tabHTML = action_service_ro update_state state in
     let d = Dom_html.document in
     Dom.removeChild buttons (Js.Opt.get (d##getElementById (Js.string "buttonid"))
 			       (fun () -> assert false));
