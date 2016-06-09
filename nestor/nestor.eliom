@@ -76,12 +76,13 @@ let action_handling action =
   let time = ref 0.0 in
   begin match !ro with
   | None -> 
-     begin if action= Wakeup then
-	 Interface_local.wake_up ();
+     begin if action= Wakeup then begin
+       Interface_local.wake_up ();
        try
 	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
 	 isActive := false;
        with _ -> Printf.fprintf stderr "fail to open Roomba"
+     end;
      end;
   | Some cro -> 
      
@@ -297,7 +298,7 @@ let init_client () =
   
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
   let sensors = Eliom_content.Html5.To_dom.of_div ~%sensor_div in
-  let buttons = Eliom_content.Html5.To_dom.of_div button_div in
+  let buttons = Eliom_content.Html5.To_dom.of_div ~%button_div in
   let ctx = canvas##(getContext (Dom_html._2d_)) in
   (*ctx##.lineCap := Js.string "round";
   draw ctx ((0, 0, 0), 5, (0, 0), (width, 0));
@@ -338,7 +339,7 @@ let init_client () =
     | _ -> ()
     end;
     draw_all ctx;
-    let slHTML = ul ~a:[a_id "buttonid"] (html_of_data sl) in
+    let slHTML = ul ~a:[a_id "sensorlist"] (html_of_data sl) in
     let d = Dom_html.document in
     Dom.removeChild sensors (Js.Opt.get (d##getElementById (Js.string "sensorlist"))
 			       (fun () -> assert false));
@@ -348,8 +349,8 @@ let init_client () =
   in
 
   let rec update_state () =
-    let%lwt state = get_state_client () in
-    let tabHTML = action_service_ro update_state state in
+    (*let%lwt state = get_state_client () in*)
+    let tabHTML = action_service_ro update_state Disconnected in
     let d = Dom_html.document in
     Dom.removeChild buttons (Js.Opt.get (d##getElementById (Js.string "buttonid"))
 			       (fun () -> assert false));
@@ -387,8 +388,8 @@ let init_client () =
   Lwt.async (fun () -> Lwt_stream.iter (handle_msg ctx) (Eliom_bus.stream ~%bus));
 
   drawb ();
-  ignore @@ action_handling_client Refresh;
   ignore @@ update_state ();
+  ignore @@ action_handling_client Refresh
 ]
 
 let skeletton () =
@@ -428,5 +429,7 @@ let () =
   Nestor_app.register
     ~service:main_service
     (fun () () ->
+      let page = skeletton () in
       let _ = [%client (init_client () : unit) ] in
-      skeletton ()) 
+      page
+      ) 
