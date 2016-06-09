@@ -78,8 +78,10 @@ let action_handling action =
   | None -> 
      begin if action= Wakeup then
 	 Interface_local.wake_up ();
-       ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
-       isActive := false;
+       try
+	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
+	 isActive := false;
+       with _ -> Printf.fprintf stderr "fail to open Roomba"
      end;
   | Some cro -> 
      
@@ -212,7 +214,6 @@ let action_service_ro = function
        ];
     tr [ td [];td [];td [];td [];td [action_button Refresh "refresh"];td [];];
   ] ]
-
     
 let%shared width = 700
 let%shared height = 400
