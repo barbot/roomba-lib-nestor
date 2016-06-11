@@ -3,20 +3,31 @@
 }
 
 img {
-    float: right;
+    float: left;
     margin: 0 0 10px 10px;
 }
 
 .canvas {
     border-radius: 4px;
-    border: solid 1px #20538D;
+    border: solid 2px #20538D;
     float: left;
+    padding: 7px 10px;
 }
 
 .sensorlistdiv {
     border-radius: 4px;
-    border: solid 1px #20538D;
+    border: solid 2px #20538D;
     float: left;
+    padding: 7px 10px;
+}
+
+#buttonid {
+    border-radius: 4px;
+    border: solid 2px #20538D;
+}
+
+td {
+    width: 30px;
 }
 
 action.a {

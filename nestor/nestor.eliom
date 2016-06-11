@@ -143,7 +143,7 @@ let canvas_elt =
   canvas ~a:[a_width width; a_height height;]
     [pcdata "your browser doesn't support canvas"]
 let sensor_div =
-  div ~a:[ a_class ["sensorlistdiv"] ] [ul ~a:[a_id "sensorlist"] []]
+  div ~a:[ a_class ["sensorlistdiv"] ] [ul ~a:[a_id "sensorlist"] [li [pcdata "No data"]]]
 let%shared button_div =
   div ~a:[ a_class ["buttondiv"]] [table ~a:[a_id "buttonid"] [] ]
 
@@ -159,15 +159,16 @@ let action_service_button =
     List.map (fun x ->action_button x x) actions*)
     
 let action_service_ro f = function
-  Disconnected -> table ~a:[a_id "buttonid"] [
+  | Disconnected -> table ~a:[a_id "buttonid"] [
+    tr [ td ~a:[a_colspan 6] [pcdata "Disconnected"]; ];
     tr [ td [];td [];td [];td [];td [];td []; ];
     tr [ td [];td [];td [];td [];td [];td []; ];
     tr [ td [];td [];td [];td [];td [];td []; ];
     tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];
 	 td [action_button f Wakeup "wakeup"];];
   ] 
-  | Connected true ->  
-  table ~a:[a_id "buttonid"] [
+  | Connected true -> table ~a:[a_id "buttonid"] [
+    tr [ td ~a:[a_colspan 6] [pcdata "Connected Direct Control"]; ];
     tr [ td [];td [action_button f (Move(100,0)) "^"];td [];
 	 td [];td [action_button f Spot "spot"];
 	 td [];];
@@ -184,8 +185,8 @@ let action_service_ro f = function
        ];
     tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
   ]
-  | Connected false ->  
-  table ~a:[a_id "buttonid"] [
+  | Connected false -> table ~a:[a_id "buttonid"] [
+    tr [ td ~a:[a_colspan 6] [pcdata "Connected"]; ];
     tr [ td [];td [];td [];td [];td [action_button f Spot "spot"];
 	 td [action_button f Safe "safe"];];
     tr [
@@ -197,8 +198,8 @@ let action_service_ro f = function
        ];
     tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
   ]
-  | Synchronized true ->  
-  table ~a:[a_id "buttonid"] [
+  | Synchronized true -> table ~a:[a_id "buttonid"] [
+    tr [ td ~a:[a_colspan 6] [pcdata "Synchronized Direct Control"]; ];
     tr [ td [];td [action_button f (Move(100,0)) "^"];td [];
 	 td [];td [action_button f Spot "spot"];
 	 td [];];
@@ -215,8 +216,8 @@ let action_service_ro f = function
        ];
     tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
   ]
-  | Synchronized false ->
-     table ~a:[a_id "buttonid"] [
+  | Synchronized false -> table ~a:[a_id "buttonid"] [
+    tr [ td ~a:[a_colspan 6] [pcdata "Synchronized"]; ];
     tr [ td [];td [];td [];td [];td [action_button f Spot "spot"];
 	 td [action_button f Safe "safe"];];
     tr [
@@ -410,19 +411,19 @@ let skeletton () =
 	     ]);
 	     sensor_div ;
 	   (* div ~a:[a_class ["sensor"]] [ul sensorval] ;*)
-(*	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ];
+	     (*	     div ~a:[a_class ["image"]] [ (svg_of_traj !Distance.static_traj) ];*)
 	     div ~a:[a_class ["image"]] [
 		   img ~alt:("Ocsigen Logo")
 		       ~src:(make_uri
 			       ~service:(Eliom_service.static_dir ())
-			       ["img/DSC_0983.jpg"])
+			       ["img/DSC_1040.jpg"])
 		       () ;
-		   img ~alt:("Ocsigen Logo")
+		  (* img ~alt:("Ocsigen Logo")
 		       ~src:(make_uri
 			       ~service:(Eliom_service.static_dir ())
 			       ["img/DSC_0984.jpg"])
-		       () ;
-	     ];*)
+		     () ;*)
+	     ];
            ]))
       
 let () =
