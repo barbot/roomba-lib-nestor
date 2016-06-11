@@ -149,10 +149,10 @@ let print_list r =
   print_ioption "distance" r.distance;
   print_ioption "angle" r.angle;
 
-  print_ioption "charging state" r.chargingState ;
+  print_charge_state "charging state" r.chargingState ;
   print_ioption "voltage" ~unit:"mV" r.voltage;
   print_ioption "current" ~unit:"mA" r.current ;
-  print_ioption "temperature" ~unit:"\\°C" r.temperature;
+  print_ioption "temperature" ~unit:"°C" r.temperature;
   print_ioption "battery Charge" ~unit:"mAh" r.batteryCharge;
   print_ioption "battery Capacity" ~unit:"mAh" r.batteryCapacity;
 
