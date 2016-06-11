@@ -111,8 +111,15 @@ let print_ioption ?unit:(u="") s2 op l = match op with
 let print_boption ?unit:(u="") s2 op l = match op with
   | None -> l
   | Some i -> (s2,(string_of_bool i)^u)::l
-
-
+let print_charge_state s2 op l = match op with
+  | None -> l
+  | Some 0 -> (s2,"Not charging")::l
+  | Some 1 -> (s2,"Reconditioning Charging")::l
+  | Some 2 -> (s2,"Full Charging")::l
+  | Some 3 -> (s2,"Trickle Charging")::l
+  | Some 4 -> (s2,"Waiting")::l
+  | Some _ -> (s2,"Charging Fault Condition")::l
+     
 let update_time r =
   r.hidden.time_index <- (r.hidden.time_index +1) mod (Array.length r.hidden.times);
   r.hidden.times.(r.hidden.time_index) <- Unix.gettimeofday ()
