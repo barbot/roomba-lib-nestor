@@ -38,11 +38,11 @@ let rec packet_length = function
 
   | 0 -> (packet_length 1) + (packet_length 2) + (packet_length 3)
   | 6 -> (packet_length 0) + (packet_length 4) + (packet_length 5)
-     
+
   | 100 -> (packet_length 6) + (packet_length 101)
   | 101 -> (packet_length 106) + (packet_length 107)
      + (packet_length 43) + (packet_length 44) + (packet_length 45)
-     + (packet_length 52) + (packet_length 52)
+     + (packet_length 52) + (packet_length 53)
   | 106 -> 12
   | 107 -> 9
 
