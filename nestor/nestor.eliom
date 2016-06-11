@@ -224,7 +224,7 @@ let action_service_ro f = function
       td [action_button f Close "close"];
     ];
     tr [ td [];td [];td []; td [];td [action_button f Dock "dock"];
-	 td [action_button f Synchronize "synchronize"];
+	 td [action_button f Stop_syn "Unsynchronize"];
        ];
     tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
      ]
