@@ -193,7 +193,7 @@ let action_service_ro f = function
       td [action_button f Close "close"];
     ];
     tr [ td [];td [];td []; td [];td [action_button f Dock "dock"];
-	 td [action_button f Stop_syn "synchronize"];
+	 td [action_button f Synchronize "synchronize"];
        ];
     tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
   ]
@@ -211,7 +211,7 @@ let action_service_ro f = function
     ];
     tr [ td [];td [action_button f (Move(-100,0)) "v"];
 	 td []; td [];td [action_button f Dock "dock"];
-	 td [action_button f Synchronize "Unsynchronize"];
+	 td [action_button f Stop_syn "Unsynchronize"];
        ];
     tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
   ]
