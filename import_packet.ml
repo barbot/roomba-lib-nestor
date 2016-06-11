@@ -11,14 +11,12 @@ let sdioc c1 c2 =
   let hb = ioc c1 in
   Some ( (hb land 127) * 256 + (ioc c2) - (hb land 128)*256 )
 
-let packet_length = function
-  | 0 -> 10+6+10
+let rec packet_length = function
   | 1 -> 10
   | 2 -> 6
   | 3 -> 10
   | 4 -> 14
   | 5 -> 12
-  | 6 -> 26+14+12
   | x when x>=7 && x<=18 -> 1
   | 19 -> 2
   | 20 -> 2
@@ -38,8 +36,13 @@ let packet_length = function
   | x when x>=54 && x <= 57 -> 2
   | 58 -> 1
 
-  | 100 -> 26+14+12 + 5+12+2+8
-  | 101 -> 5+12+2+8
+  | 0 -> (packet_length 1) + (packet_length 2) + (packet_length 3)
+  | 6 -> (packet_length 0) + (packet_length 4) + (packet_length 5)
+     
+  | 100 -> (packet_length 6) + (packet_length 101)
+  | 101 -> (packet_length 106) + (packet_length 107)
+     + (packet_length 43) + (packet_length 44) + (packet_length 45)
+     + (packet_length 52) + (packet_length 52)
   | 106 -> 12
   | 107 -> 9
 
