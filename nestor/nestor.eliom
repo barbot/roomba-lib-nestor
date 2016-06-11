@@ -91,7 +91,7 @@ let action_handling action =
      begin match action with
      | Refresh | Wakeup ->
 	if not !synchronized then
-	  Interface_local.query_list cro [1;2;3;4;5;43;44;45;106;107] (*[100]*);
+	  Interface_local.query_list cro [1;2;3;4;5;43;44;45;101] (*[100]*);
         callbackfun ~cb:(fun x y r rs ->
 	 let sl = print_list rs in
 	 ignore @@ Eliom_bus.write bus (x,y,r,sl)
