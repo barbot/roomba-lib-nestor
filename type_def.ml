@@ -143,7 +143,7 @@ let print_ir = function
   | 246 -> "Green Buoy and Force Field"
   | 254 -> "Red Buoy, Green Buoy and Force Field"
 
-  | _ -> "Unkown"
+  | x -> "Unkown "^(string_of_int x)
 
 let print_ir_code s2 op l = match op with
   | None -> l
