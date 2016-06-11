@@ -117,7 +117,7 @@ and import_packet rs s i = function
   | 58-> rs.stasis <- sboc s.[i]
  
   | 100-> import_group rs s i [6;101]
-  | 101-> import_group rs s i [43;45;106;52;54;107]
+  | 101-> import_group rs s i [43;44;45;106;52;54;107]
   | 106-> import_group rs s i [46;47;48;49;50;51]
   | 107-> import_group rs s i [54;55;56;57;58]
 
