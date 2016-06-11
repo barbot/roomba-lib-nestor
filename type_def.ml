@@ -119,6 +119,35 @@ let print_charge_state s2 op l = match op with
   | Some 3 -> (s2,"Trickle Charging")::l
   | Some 4 -> (s2,"Waiting")::l
   | Some _ -> (s2,"Charging Fault Condition")::l
+
+let print_ir = function
+  | 0 -> ""
+
+  | 162 -> "Virtual Wall"
+     
+  | 160 -> "Reserved"
+  | 161 -> "Force Field"
+  | 164 -> "Green Buoy"
+  | 165 -> "Green Buoy and Force Field"
+  | 168 -> "Red Buoy"
+  | 169 -> "Red Buoy and Force Field"
+  | 172 -> "Red Buoy and Green Buoy"
+  | 173 -> "Red Buoy, Green Buoy and Force Field"
+     
+  | 240 -> "Reserved"
+  | 248 -> "Red Buoy"
+  | 244 -> "Green Buoy"
+  | 242 -> "Force Field"
+  | 252 -> "Red Buoy and Green Buoy"
+  | 250 -> "Red Buoy and Force Field"
+  | 246 -> "Green Buoy and Force Field"
+  | 254 -> "Red Buoy, Green Buoy and Force Field"
+
+  | _ -> "Unkown"
+
+let print_ir_code s2 op l = match op with
+  | None -> l
+  | Some x -> (s2, print_ir x)::l
      
 let update_time r =
   r.hidden.time_index <- (r.hidden.time_index +1) mod (Array.length r.hidden.times);
@@ -141,9 +170,9 @@ let print_list r =
   print_ioption "motor over currents" r.motorOvercurrents;
   print_ioption "dirt detect" r.dirtDetect;
 
-  print_ioption "ir code" r.irCode;
-  print_ioption "ir code left" r.irCodeLeft;
-  print_ioption "ir code right" r.irCodeRight;
+  print_ir_code "ir code" r.irCode;
+  print_ir_code "ir code left" r.irCodeLeft;
+  print_ir_code "ir code right" r.irCodeRight;
 
   print_ioption "buttons" r.buttons;
   print_ioption "distance" r.distance;
