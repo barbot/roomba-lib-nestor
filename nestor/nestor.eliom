@@ -39,21 +39,30 @@ let ro = ref None
 let alive = ref false
 let synchronized = ref false
 let isActive = ref false
-  
-let rec sleep_thread () =
-  while true do 
-    Unix.sleep 120;
-    if !synchronized then Unix.sleep 1200;
-    match !ro with
+let lcd = ref stdout
+
+let close () =
+   match !ro with
       None -> ()
-    | Some cro when not !alive -> (
+    | Some cro -> (
       if !synchronized then begin
 	Interface_local.stop_sync cro;
 	synchronized := false;
       end;
       isActive := false;
       Interface_local.close_roomba cro;
-      ro := None;)
+      ro := None;
+      ignore @@ Unix.close_process_out !lcd;
+    )
+       
+    
+let rec sleep_thread () =
+  while true do 
+    Unix.sleep 120;
+    if !synchronized then Unix.sleep 1200;
+    match !ro with
+      None -> ()
+    | Some cro when not !alive -> close ()      
     | _ -> alive := false
   done
 
@@ -82,6 +91,9 @@ let action_handling action =
        try
 	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
 	 isActive := false;
+	 lcd := Unix.open_process_out "/usr/bin/python char_text.py";
+	 output_string !lcd "Connected\n";
+	 flush !lcd
        with _ -> Printf.fprintf stderr "fail to open Roomba"
      end;
      end;
@@ -107,16 +119,19 @@ let action_handling action =
 				    time := time2;
 				    let sl = print_list rs in
 				    ignore @@ Eliom_bus.write bus (x,y,r,sl)
-				    end) static_pt);
+				end) static_pt);
+       output_string !lcd "Synchronized\n";
+       flush !lcd
        synchronized := true
      end
      | Stop_syn -> Interface_local.stop_sync cro;
-	synchronized := false;
+       synchronized := false;
+       output_string !lcd "Connected\n";
+       flush !lcd
      | Safe -> Interface_local.roomba_cmd cro Safe;
        isActive := true;
 	
-     | Close -> Interface_local.close_roomba cro;
-       ro := None
+     | Close -> close ()
 	 
      | Power -> Interface_local.roomba_cmd cro Power
      | Max -> Interface_local.roomba_cmd cro Max;
