@@ -121,7 +121,7 @@ let action_handling action =
 				    ignore @@ Eliom_bus.write bus (x,y,r,sl)
 				end) static_pt);
        output_string !lcd "Synchronized\n";
-       flush !lcd
+       flush !lcd;
        synchronized := true
      end
      | Stop_syn -> Interface_local.stop_sync cro;
