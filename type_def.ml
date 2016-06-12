@@ -105,20 +105,13 @@ type cmd =
   | QueryList of int list
   | WakeUp
 
-let print_ioption ?unit:(u="") s2 op l = match op with
-  | None -> l
-  | Some i -> (s2,(string_of_int i)^u)::l
-let print_boption ?unit:(u="") s2 op l = match op with
-  | None -> l
-  | Some i -> (s2,(string_of_bool i)^u)::l
-let print_charge_state s2 op l = match op with
-  | None -> l
-  | Some 0 -> (s2,"Not charging")::l
-  | Some 1 -> (s2,"Reconditioning Charging")::l
-  | Some 2 -> (s2,"Full Charging")::l
-  | Some 3 -> (s2,"Trickle Charging")::l
-  | Some 4 -> (s2,"Waiting")::l
-  | Some _ -> (s2,"Charging Fault Condition")::l
+let print_charge = function
+  | 0 -> "Not charging"
+  | 1 -> "Reconditioning Charging"
+  | 2 -> "Full Charging"
+  | 3 -> "Trickle Charging"
+  | 4 -> "Waiting"
+  | _ -> "Charging Fault Condition"
 
 let print_ir = function
   | 0 -> ""
@@ -144,10 +137,17 @@ let print_ir = function
   | 254 -> "Red Buoy, Green Buoy and Force Field"
 
   | x -> "Unkown "^(string_of_int x)
-
-let print_ir_code s2 op l = match op with
+      
+let print_ioption ?unit:(u="") s2 op l = match op with
   | None -> l
-  | Some x -> (s2, print_ir x)::l
+  | Some i -> (s2,(string_of_int i)^u)::l
+let print_boption ?unit:(u="") s2 op l = match op with
+  | None -> l
+  | Some i -> (s2,(string_of_bool i)^u)::l
+
+let print_soption f s2 op l = match op with
+  | None -> l
+  | Some x -> (s2, f x)::l
      
 let update_time r =
   r.hidden.time_index <- (r.hidden.time_index +1) mod (Array.length r.hidden.times);
@@ -170,15 +170,15 @@ let print_list r =
   print_ioption "motor over currents" r.motorOvercurrents;
   print_ioption "dirt detect" r.dirtDetect;
 
-  print_ir_code "ir code" r.irCode;
-  print_ir_code "ir code left" r.irCodeLeft;
-  print_ir_code "ir code right" r.irCodeRight;
+  print_soption print_ir "ir code" r.irCode;
+  print_soption print_ir "ir code left" r.irCodeLeft;
+  print_soption print_ir "ir code right" r.irCodeRight;
 
   print_ioption "buttons" r.buttons;
   print_ioption "distance" r.distance;
   print_ioption "angle" r.angle;
 
-  print_charge_state "charging state" r.chargingState ;
+  print_soption print_charge "charging state" r.chargingState ;
   print_ioption "voltage" ~unit:"mV" r.voltage;
   print_ioption "current" ~unit:"mA" r.current ;
   print_ioption "temperature" ~unit:"°C" r.temperature;
