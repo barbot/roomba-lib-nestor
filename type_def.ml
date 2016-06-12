@@ -137,7 +137,13 @@ let print_ir = function
   | 254 -> "Red Buoy, Green Buoy and Force Field"
 
   | x -> "Unkown "^(string_of_int x)
-      
+
+let print_io = function
+  | 0 -> "Off"
+  | 1 -> "Passive"
+  | 2 -> "Safe"
+  | 3 -> "Full"
+     
 let print_ioption ?unit:(u="") s2 op l = match op with
   | None -> l
   | Some i -> (s2,(string_of_int i)^u)::l
@@ -192,7 +198,7 @@ let print_list r =
   print_ioption "cliff right Signal" r.cliffRightSignal;
   print_ioption "charging source" r.chargingSource;
 
-  print_ioption "OI Mode" r.oiMode;
+  print_soption print_io "OI Mode" r.oiMode;
   print_ioption "song Number" r.songNumber;
   print_boption "song is playing ?" r.songIsPlaying;
   print_ioption "OI stream Packet Number" r.oiStreamNumPacket;
