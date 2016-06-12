@@ -150,89 +150,99 @@ let%shared button_div =
 
 [%%client
 
+ let speed_slider = Raw.input ~a:[a_id "speedid";
+				  a_input_type `Range;
+				  a_input_min 0.0;
+				  a_input_max 500.0;
+				  a_value "100"] ()
+  
 let rec action_button f x y =
   let onclick_handler = (fun _ ->
-    ignore @@ action_handling_client x;ignore @@ f ()) in
+    let slide = Eliom_content.Html5.To_dom.of_input speed_slider in
+    let speed = int_of_string @@ Js.to_string slide##.value in
+    print_endline @@ string_of_int speed; 
+    ignore @@ action_handling_client (x speed);ignore @@ f ()) in
   button ~a:[a_onclick onclick_handler] [pcdata y;]
-
+    
 (*  
 let action_service_button =
     List.map (fun x ->action_button x x) actions*)
     
-let action_service_ro f = function
+let action_service_ro f = function (*match Connected true with*)
   | Disconnected -> table ~a:[a_id "buttonid"] [
     tr [ td ~a:[a_colspan 6] [pcdata "Disconnected"]; ];
     tr [ td [];td [];td [];td [];td [];td []; ];
     tr [ td [];td [];td [];td [];td [];td []; ];
     tr [ td [];td [];td [];td [];td [];td []; ];
-    tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];
-	 td [action_button f Wakeup "wakeup"];];
+    tr [ td [];td [];td [];td [];td [action_button f (fun _ ->Refresh) "refresh"];
+	 td [action_button f (fun _ ->Wakeup) "wakeup"];];
   ] 
   | Connected true -> table ~a:[a_id "buttonid"] [
     tr [ td ~a:[a_colspan 6] [pcdata "Connected Direct Control"]; ];
-    tr [ td [action_button f (Move(100,1000)) "\\"];
-	 td [action_button f (Move(100,0)) "^"];
-	 td [action_button f (Move(100,-1000)) "/"];
-	 td [];td [action_button f Spot "spot"];
+    tr [ td [action_button f (fun s ->Move(s,1000)) "\\"];
+	 td [action_button f (fun s ->Move(s,0)) "^"];
+	 td [action_button f (fun s ->Move(s,-1000)) "/"];
+	 td [];td [action_button f (fun _->Spot) "spot"];
 	 td [];];
     tr [
-      td [action_button f (Move(100,1)) "<"];
-      td [action_button f (Move(0,0)) "o"];
-      td [action_button f (Move(100,-1)) ">"];
-      td []; td [action_button f Clean "clean"];
-      td [action_button f Close "close"];
+      td [action_button f (fun s ->Move(s,1)) "<"];
+      td [action_button f (fun _ ->Move(0,0)) "o"];
+      td [action_button f (fun s ->Move(s,-1)) ">"];
+      td []; td [action_button f (fun _ ->Clean) "clean"];
+      td [action_button f (fun _ ->Close) "close"];
     ];
-    tr [ td [];td [action_button f (Move(-100,0)) "v"];
-	 td []; td [];td [action_button f Dock "dock"];
-	 td [action_button f Synchronize "synchronize"];
+    tr [ td [];td [action_button f (fun s ->Move(-s,0)) "v"];
+	 td []; td [];td [action_button f (fun _->Dock) "dock"];
+	 td [action_button f (fun _->Synchronize) "synchronize"];
        ];
-    tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
+    tr [ td ~a:[a_colspan 4] [ speed_slider ];
+	 td [action_button f (fun _->Refresh) "refresh"];td [];];
   ]
   | Connected false -> table ~a:[a_id "buttonid"] [
     tr [ td ~a:[a_colspan 6] [pcdata "Connected"]; ];
-    tr [ td [];td [];td [];td [];td [action_button f Spot "spot"];
-	 td [action_button f Safe "safe"];];
+    tr [ td [];td [];td [];td [];td [action_button f (fun _->Spot) "spot"];
+	 td [action_button f (fun _->Safe) "safe"];];
     tr [
-      td [];td [];td [];td []; td [action_button f Clean "clean"];
-      td [action_button f Close "close"];
+      td [];td [];td [];td []; td [action_button f (fun _->Clean) "clean"];
+      td [action_button f (fun _->Close) "close"];
     ];
-    tr [ td [];td [];td []; td [];td [action_button f Dock "dock"];
-	 td [action_button f Synchronize "synchronize"];
+    tr [ td [];td [];td []; td [];td [action_button f (fun _->Dock) "dock"];
+	 td [action_button f (fun _->Synchronize) "synchronize"];
        ];
-    tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
+    tr [ td [];td [];td [];td [];td [action_button f (fun _->Refresh) "refresh"];td [];];
   ]
   | Synchronized true -> table ~a:[a_id "buttonid"] [
     tr [ td ~a:[a_colspan 6] [pcdata "Synchronized Direct Control"]; ];
-    tr [ td [action_button f (Move(100,1000)) "\\"];
-	 td [action_button f (Move(100,0)) "^"];
-	 td [action_button f (Move(100,-1000)) "/"];
-	 td [];td [action_button f Spot "spot"];
+    tr [ td [action_button f (fun s ->Move(s,1000)) "\\"];
+	 td [action_button f (fun s ->Move(s,0)) "^"];
+	 td [action_button f (fun s ->Move(s,-1000)) "/"];
+	 td [];td [action_button f (fun _->Spot) "spot"];
 	 td [];];
     tr [
-      td [action_button f (Move(100,1)) "<"];
-      td [action_button f (Move(0,0)) "o"];
-      td [action_button f (Move(100,-1)) ">"];
-      td []; td [action_button f Clean "clean"];
-      td [action_button f Close "close"];
+      td [action_button f (fun s ->Move(s,1)) "<"];
+      td [action_button f (fun _ ->Move(0,0)) "o"];
+      td [action_button f (fun s ->Move(s,-1)) ">"];
+      td []; td [action_button f (fun _ ->Clean) "clean"];
+      td [action_button f (fun _ ->Close) "close"];
     ];
-    tr [ td [];td [action_button f (Move(-100,0)) "v"];
-	 td []; td [];td [action_button f Dock "dock"];
-	 td [action_button f Stop_syn "Unsynchronize"];
+    tr [ td [];td [action_button f (fun s->Move(-s,0)) "v"];
+	 td []; td [];td [action_button f (fun _->Dock) "dock"];
+	 td [action_button f (fun _->Stop_syn) "Unsynchronize"];
        ];
-    tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
+    tr [ td ~a:[a_colspan 4] [ speed_slider ]; td [action_button f (fun _->Refresh) "refresh"];td [];];
   ]
   | Synchronized false -> table ~a:[a_id "buttonid"] [
     tr [ td ~a:[a_colspan 6] [pcdata "Synchronized"]; ];
-    tr [ td [];td [];td [];td [];td [action_button f Spot "spot"];
-	 td [action_button f Safe "safe"];];
+    tr [ td [];td [];td [];td [];td [action_button f (fun _->Spot) "spot"];
+	 td [action_button f (fun _->Safe) "safe"];];
     tr [
-      td [];td [];td [];td []; td [action_button f Clean "clean"];
-      td [action_button f Close "close"];
+      td [];td [];td [];td []; td [action_button f (fun _->Clean) "clean"];
+      td [action_button f (fun _->Close) "close"];
     ];
-    tr [ td [];td [];td []; td [];td [action_button f Dock "dock"];
-	 td [action_button f Stop_syn "Unsynchronize"];
+    tr [ td [];td [];td []; td [];td [action_button f (fun _->Dock) "dock"];
+	 td [action_button f (fun _->Stop_syn) "Unsynchronize"];
        ];
-    tr [ td [];td [];td [];td [];td [action_button f Refresh "refresh"];td [];];
+    tr [ td [];td [];td [];td [];td [action_button f (fun _->Refresh) "refresh"];td [];];
      ]
        
     
