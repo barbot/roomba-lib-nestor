@@ -43,6 +43,7 @@ let isActive = ref false
 let rec sleep_thread () =
   while true do 
     Unix.sleep 120;
+    if !synchronized then Unix.sleep 1200;
     match !ro with
       None -> ()
     | Some cro when not !alive -> (
@@ -169,7 +170,9 @@ let action_service_ro f = function
   ] 
   | Connected true -> table ~a:[a_id "buttonid"] [
     tr [ td ~a:[a_colspan 6] [pcdata "Connected Direct Control"]; ];
-    tr [ td [];td [action_button f (Move(100,0)) "^"];td [];
+    tr [ td [action_button f (Move(100,1000)) "\\"];
+	 td [action_button f (Move(100,0)) "^"];
+	 td [action_button f (Move(100,-1000)) "/"];
 	 td [];td [action_button f Spot "spot"];
 	 td [];];
     tr [
@@ -200,7 +203,9 @@ let action_service_ro f = function
   ]
   | Synchronized true -> table ~a:[a_id "buttonid"] [
     tr [ td ~a:[a_colspan 6] [pcdata "Synchronized Direct Control"]; ];
-    tr [ td [];td [action_button f (Move(100,0)) "^"];td [];
+    tr [ td [action_button f (Move(100,1000)) "\\"];
+	 td [action_button f (Move(100,0)) "^"];
+	 td [action_button f (Move(100,-1000)) "/"];
 	 td [];td [action_button f Spot "spot"];
 	 td [];];
     tr [
