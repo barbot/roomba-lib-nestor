@@ -3,6 +3,7 @@
 }
 
 img {
+    display:block
     float: left;
     margin: 0 0 10px 10px;
 }
@@ -12,6 +13,7 @@ img {
     border: solid 2px #20538D;
     float: left;
     padding: 7px 10px;
+    display:block
 }
 
 .sensorlistdiv {
@@ -31,6 +33,8 @@ td {
 }
 
 action.a {
+    display:block
+    float: left;
     padding: 7px 10px;
     background: #4479BA;
     color: #FFF;
