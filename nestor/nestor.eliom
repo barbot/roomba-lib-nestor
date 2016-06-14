@@ -463,4 +463,23 @@ let () =
       let page = skeletton () in
       let _ = [%client (init_client () : unit) ] in
       page
-      ) 
+    );
+  Eliom_registration.Any.register_service
+    ~path:["rest"]
+    ~get_params:())
+    (fun key_opt () ->
+     match key_opt with
+     | None ->
+        (* List all keys *)
+          let keys = Hashtbl.fold (fun k _ acc -> k :: acc) store [] in
+          let content = String.concat "\n" keys in
+          Eliom_registration.String.send ~code:200 (content, "text/plain")
+        | Some key ->
+          (* Retrieve the value associated to [key] *)
+          try
+            let value = Hashtbl.find store key in
+            Eliom_registration.String.send ~code:200 (value, "text/plain")
+          with
+          | Not_found ->
+            Eliom_registration.String.send ~code:404
+              ("Error: Not found", "text/plain"))
