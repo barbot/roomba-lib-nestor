@@ -159,7 +159,7 @@ let get_state_action () =
     Interface_local.query_list cro (*[1;2;3;4;5;101]*) [100];
   let rs = Interface_local.get_state cro in
   let sl = List.fold_left
-    (fun c (n,v) -> Printf.sprintf " %s:\"%s\",\"%s\"" n v c) "\"name\":\"roomba\""
+    (fun c (n,v) -> Printf.sprintf " \"%s\":\"%s\",%s" n v c) "\"name\":\"roomba\""
     (Type_def.print_list rs) in
   Lwt.return ("{ "^ sl ^ "}")
       
