@@ -56,7 +56,7 @@ let close () =
     )
        
     
-let rec sleep_thread () =
+let sleep_thread () =
   while true do 
     Unix.sleep 120;
     if !synchronized then Unix.sleep 1200;
@@ -80,7 +80,7 @@ let get_state () =
   | Some _ when !synchronized -> Lwt.return @@ Synchronized !isActive
   | _ -> Lwt.return @@ Connected !isActive
      
-    
+     
 let action_handling action =
   alive := true;
   let time = ref 0.0 in
@@ -149,6 +149,22 @@ let action_handling action =
   end;
   Lwt.return unit
 
+let get_state_action () =
+  let rec get_ro () = match !ro with
+      None -> let%lwt _ = action_handling Wakeup in
+	      get_ro ()
+    | Some r -> Lwt.return r in
+  let%lwt cro = get_ro () in
+  if not !synchronized then
+    Interface_local.query_list cro (*[1;2;3;4;5;101]*) [100];
+  let rs = Interface_local.get_state cro in
+  let sl = List.fold_left
+    (fun c (n,v) -> Printf.sprintf " %s:\"%s\",\"%s\"" n v c) "\"name\":\"roomba\""
+    (Type_def.print_list rs) in
+  Lwt.return ("{ "^ sl ^ "}")
+      
+  
+    
 let%client action_handling_client = ~%(server_function [%derive.json: order] action_handling)
 let%client get_state_client = ~%(server_function [%derive.json: unit] get_state)
 
@@ -463,23 +479,13 @@ let () =
       let page = skeletton () in
       let _ = [%client (init_client () : unit) ] in
       page
-    );
+    )
+
+let _ =
   Eliom_registration.Any.register_service
     ~path:["rest"]
-    ~get_params:())
-    (fun key_opt () ->
-     match key_opt with
-     | None ->
-        (* List all keys *)
-          let keys = Hashtbl.fold (fun k _ acc -> k :: acc) store [] in
-          let content = String.concat "\n" keys in
-          Eliom_registration.String.send ~code:200 (content, "text/plain")
-        | Some key ->
-          (* Retrieve the value associated to [key] *)
-          try
-            let value = Hashtbl.find store key in
-            Eliom_registration.String.send ~code:200 (value, "text/plain")
-          with
-          | Not_found ->
-            Eliom_registration.String.send ~code:404
-              ("Error: Not found", "text/plain"))
+    ~get_params: Eliom_parameter.unit
+    (fun () () ->
+      let%lwt answer = get_state_action () in
+      Eliom_registration.String.send ~code:200
+        (answer,"application/javascript") )
