@@ -154,6 +154,12 @@ let action_handling action =
   end;
   Lwt.return unit
 
+let csv_print label x l =
+  match x with
+    Some y -> (label,y)::l
+  | None -> (label,"")::l
+    
+    
 let get_state_action () =
   let rec get_ro () = match !ro with
       None ->
@@ -167,8 +173,9 @@ let get_state_action () =
   let rs = Interface_local.get_state cro in
   let time = string_of_float @@ Unix.gettimeofday () in
   let sl = List.fold_left
-    (fun c (n,v) -> Printf.sprintf " \"%s\":\"%s\",%s" n v c) ("\"time\":"^time) 
-    (Type_def.print_list rs) in
+    (*(fun c (n,v) -> Printf.sprintf " \"%s\":\"%s\",%s" n v c) ("\"time\":"^time)*)
+    (fun c (_,v) -> Printf.sprintf " \"%s\",%s" v c) time 
+    (Type_def.print_list ~prfun:csv_print rs) in
   Lwt.return ("{ "^ sl ^ "},\n")
       
   

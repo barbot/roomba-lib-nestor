@@ -1,3 +1,11 @@
+let (|>>) x f = match x with
+    Some y -> f y
+  | None -> None
+
+let (|>>>) x f = match x with
+    Some y -> Some (f y)
+  | None -> None
+
 type smooth_value = {
   mutable lightBumpLeftSm : float;
   mutable lightBumpFrontLeftSm : float;
@@ -144,16 +152,9 @@ let print_io = function
   | 2 -> "Safe"
   | 3 -> "Full"
      
-let print_ioption ?unit:(u="") s2 op l = match op with
-  | None -> l
-  | Some i -> (s2,(string_of_int i)^u)::l
-let print_boption ?unit:(u="") s2 op l = match op with
-  | None -> l
-  | Some i -> (s2,(string_of_bool i)^u)::l
-
-let print_soption f s2 op l = match op with
-  | None -> l
-  | Some x -> (s2, f x)::l
+let print_ioption ?unit:(u="") i = (string_of_int i)^u
+let print_boption ?unit:(u="") b = (string_of_bool b)^u
+let print_soption f x = f x
      
 let update_time r =
   r.hidden.time_index <- (r.hidden.time_index +1) mod (Array.length r.hidden.times);
@@ -162,68 +163,70 @@ let update_time r =
 let freq r =
   let n = Array.length r.hidden.times in
   ((float n) /. (r.hidden.times.(r.hidden.time_index) -. r.hidden.times.((r.hidden.time_index +1) mod n)))
-
-let print_list r =
+    
+let print_list ?prfun:(printfun=fun label x l -> match x with Some y -> (label,y)::l |_ -> l) r =
+  let f fp label op l =
+    printfun label (op |>>> fp) l in
   List.fold_left (fun x y -> y x) []
   [
-  print_ioption "bumps Wheel drops" r.bumpsWheeldrops;
-  print_boption "wall" r.wall;
-  print_boption "cliff left" r.cliffLeft;
-  print_boption "cliff front left" r.cliffFrontLeft;
-  print_boption "cliff front right" r.cliffFrontRight;
-  print_boption "cliff right" r.cliffRight;
-  print_boption "virtual Wall" r.virtualWall;
-  print_ioption "motor over currents" r.motorOvercurrents;
-  print_ioption "dirt detect" r.dirtDetect;
+  f print_ioption "bumps Wheel drops" r.bumpsWheeldrops;
+  f print_boption "wall" r.wall;
+  f print_boption "cliff left" r.cliffLeft;
+  f print_boption "cliff front left" r.cliffFrontLeft;
+  f print_boption "cliff front right" r.cliffFrontRight;
+  f print_boption "cliff right" r.cliffRight;
+  f print_boption "virtual Wall" r.virtualWall;
+  f print_ioption "motor over currents" r.motorOvercurrents;
+  f print_ioption "dirt detect" r.dirtDetect;
 
-  print_soption print_ir "ir code" r.irCode;
-  print_soption print_ir "ir code left" r.irCodeLeft;
-  print_soption print_ir "ir code right" r.irCodeRight;
+  f (print_soption print_ir) "ir code" r.irCode;
+  f (print_soption print_ir) "ir code left" r.irCodeLeft;
+  f (print_soption print_ir) "ir code right" r.irCodeRight;
 
-  print_ioption "buttons" r.buttons;
-  print_ioption "distance" r.distance;
-  print_ioption "angle" r.angle;
+  f print_ioption "buttons" r.buttons;
+  f print_ioption "distance" r.distance;
+  f print_ioption "angle" r.angle;
 
-  print_soption print_charge "charging state" r.chargingState ;
-  print_ioption "voltage" ~unit:"mV" r.voltage;
-  print_ioption "current" ~unit:"mA" r.current ;
-  print_ioption "temperature" ~unit:"°C" r.temperature;
-  print_ioption "battery Charge" ~unit:"mAh" r.batteryCharge;
-  print_ioption "battery Capacity" ~unit:"mAh" r.batteryCapacity;
+  f (print_soption print_charge) "charging state" r.chargingState ;
+  f (print_ioption ~unit:"mV") "voltage" r.voltage;
+  f (print_ioption ~unit:"mA") "current" r.current ;
+  f (print_ioption ~unit:"°C") "temperature"  r.temperature;
+  f (print_ioption ~unit:"mAh") "battery Charge"  r.batteryCharge;
+  f (print_ioption ~unit:"mAh") "battery Capacity"  r.batteryCapacity;
 
-  print_ioption "wall Signal" r.wallSignal;
-  print_ioption "cliff left Signal" r.cliffLeftSignal;
-  print_ioption "cliff front left Signal" r.cliffFrontLeftSignal;
-  print_ioption "cliff front right Signal" r.cliffFrontRightSignal;
-  print_ioption "cliff right Signal" r.cliffRightSignal;
-  print_ioption "charging source" r.chargingSource;
+  f print_ioption "wall Signal" r.wallSignal;
+  f print_ioption "cliff left Signal" r.cliffLeftSignal;
+  f print_ioption "cliff front left Signal" r.cliffFrontLeftSignal;
+  f print_ioption "cliff front right Signal" r.cliffFrontRightSignal;
+  f print_ioption "cliff right Signal" r.cliffRightSignal;
+  f print_ioption "charging source" r.chargingSource;
 
-  print_soption print_io "OI Mode" r.oiMode;
-  print_ioption "song Number" r.songNumber;
-  print_boption "song is playing ?" r.songIsPlaying;
-  print_ioption "OI stream Packet Number" r.oiStreamNumPacket;
-  print_ioption "roomba velocity" r.velocity;
-  print_ioption "roomba radius" r.radius;
-  print_ioption "right velocity" r.velocityRight;
-  print_ioption "left velocity" r.velocityLeft;
+  f (print_soption print_io) "OI Mode" r.oiMode;
+  f print_ioption "song Number" r.songNumber;
+  f print_boption "song is playing ?" r.songIsPlaying;
+  f print_ioption "OI stream Packet Number" r.oiStreamNumPacket;
+  f print_ioption "roomba velocity" r.velocity;
+  f print_ioption "roomba radius" r.radius;
+  f print_ioption "right velocity" r.velocityRight;
+  f print_ioption "left velocity" r.velocityLeft;
 
-  print_ioption "left encoder" r.leftEncoder ;
-  print_ioption "right encoder" r.rightEncoder ;
+  f print_ioption "left encoder" r.leftEncoder ;
+  f print_ioption "right encoder" r.rightEncoder ;
 
   
-  print_ioption "bumper" r.lightBumper;
-  print_ioption "bump left Signal" r.lightBumpLeft;
-  print_ioption "bump front left Signal" r.lightBumpFrontLeft;
-  print_ioption "bump center left Signal" r.lightBumpCenterLeft;
-  print_ioption "bump center right Signal" r.lightBumpCenterRight;
-  print_ioption "bump front right Signal" r.lightBumpFrontRight;
-  print_ioption "bump right Signal" r.lightBumpRight;
+  f print_ioption "bumper" r.lightBumper;
+  f print_ioption "bump left Signal" r.lightBumpLeft;
+  f print_ioption "bump front left Signal" r.lightBumpFrontLeft;
+  f print_ioption "bump center left Signal" r.lightBumpCenterLeft;
+  f print_ioption "bump center right Signal" r.lightBumpCenterRight;
+  f print_ioption "bump front right Signal" r.lightBumpFrontRight;
+  f print_ioption "bump right Signal" r.lightBumpRight;
   
-  print_ioption "left motor current" ~unit:"mA" r.leftMotorCurrent;
-  print_ioption "right motor current" ~unit:"mA" r.rightMotorCurrent;
-  print_ioption "main brush motor current" ~unit:"mA" r.mainBrushMotorCurrent;
-  print_ioption "side brush motor current" ~unit:"mA" r.sideBrushMotorCurrent;
-  print_boption "stasis" r.stasis;
+  f (print_ioption ~unit:"mA") "left motor current" r.leftMotorCurrent;
+  f (print_ioption ~unit:"mA") "right motor current" r.rightMotorCurrent;
+  f (print_ioption ~unit:"mA") "main brush motor current" r.mainBrushMotorCurrent;
+  f (print_ioption ~unit:"mA") "side brush motor current" r.sideBrushMotorCurrent;
+  f print_boption "stasis" r.stasis;
 
 
   (fun l -> ("Periode",Printf.sprintf "%f" (freq r)) :: l);
