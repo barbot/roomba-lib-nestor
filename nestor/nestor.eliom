@@ -94,7 +94,7 @@ let action_handling action =
        try
 	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
 	 isActive := false;
-	 if not !silentconn then (
+	 if not !silentconn || true then (
 	   lcd := Unix.open_process_out "/usr/bin/python char_text.py";
 	   output_string !lcd "Connected\n";
 	   flush !lcd
@@ -156,7 +156,7 @@ let action_handling action =
 
 let csv_print label x l =
   match x with
-    Some y -> (label,y)::l
+    Some y -> (label,"\""^y^"\"")::l
   | None -> (label,"")::l
     
     
@@ -174,7 +174,7 @@ let get_state_action () =
   let time = string_of_float @@ Unix.gettimeofday () in
   let sl = List.fold_left
     (*(fun c (n,v) -> Printf.sprintf " \"%s\":\"%s\",%s" n v c) ("\"time\":"^time)*)
-    (fun c (_,v) -> Printf.sprintf " \"%s\",%s" v c) time 
+    (fun c (_,v) -> Printf.sprintf "%s,%s" v c) time 
     (Type_def.print_list ~prfun:csv_print rs) in
   Lwt.return (sl ^ "\n")
       
