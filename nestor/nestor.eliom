@@ -94,7 +94,7 @@ let action_handling action =
        try
 	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
 	 isActive := false;
-	 if not !silentconn || true then (
+	 if not !silentconn then (
 	   lcd := Unix.open_process_out "/usr/bin/python char_text.py";
 	   output_string !lcd "Connected\n";
 	   flush !lcd
@@ -395,7 +395,8 @@ let init_client () =
   
   let handle_msg ctx (xf,yf,r,sl) =
     begin match !poslist with
-      (x,y,rl)::_ when x <> xf || y <> xf || rl <> r ->
+      (x,y,rl)::_ when (abs_float (x -. xf)) +. (abs_float (y -. yf)) +. (abs_float (r -. rl))
+	  > 10.0 ->
 	poslist := (xf,yf,r)::(!poslist)
     | [] -> poslist := [(xf,yf,r)]
     | _ -> ()
