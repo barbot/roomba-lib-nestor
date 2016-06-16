@@ -40,7 +40,8 @@ let alive = ref false
 let synchronized = ref false
 let isActive = ref false
 let lcd = ref stdout
-
+let silentconn = ref false
+  
 let close () =
    match !ro with
       None -> ()
@@ -53,12 +54,14 @@ let close () =
       Interface_local.close_roomba cro;
       ro := None;
       ignore @@ Unix.close_process_out !lcd;
+      silentconn := false;
     )
        
     
 let sleep_thread () =
-  while true do 
-    Unix.sleep 120;
+  while true do
+    Unix.sleep 10;
+    if not !silentconn then Unix.sleep 120;
     if !synchronized then Unix.sleep 1200;
     match !ro with
       None -> ()
@@ -91,9 +94,11 @@ let action_handling action =
        try
 	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
 	 isActive := false;
-	 lcd := Unix.open_process_out "/usr/bin/python char_text.py";
-	 output_string !lcd "Connected\n";
-	 flush !lcd
+	 if not !silentconn then (
+	   lcd := Unix.open_process_out "/usr/bin/python char_text.py";
+	   output_string !lcd "Connected\n";
+	   flush !lcd
+	 )
        with _ -> Printf.fprintf stderr "fail to open Roomba"
      end;
      end;
@@ -151,17 +156,20 @@ let action_handling action =
 
 let get_state_action () =
   let rec get_ro () = match !ro with
-      None -> let%lwt _ = action_handling Wakeup in
-	      get_ro ()
+      None ->
+	silentconn := true;
+	let%lwt _ = action_handling Wakeup in
+	get_ro ()
     | Some r -> Lwt.return r in
   let%lwt cro = get_ro () in
   if not !synchronized then
-    Interface_local.query_list cro (*[1;2;3;4;5;101]*) [100];
+    Interface_local.query_list cro (*[1;2;3;4;5;101]*) [3];
   let rs = Interface_local.get_state cro in
+  let time = string_of_float @@ Unix.gettimeofday () in
   let sl = List.fold_left
-    (fun c (n,v) -> Printf.sprintf " \"%s\":\"%s\",%s" n v c) "\"name\":\"roomba\""
+    (fun c (n,v) -> Printf.sprintf " \"%s\":\"%s\",%s" n v c) ("\"time\":"^time) 
     (Type_def.print_list rs) in
-  Lwt.return ("{ "^ sl ^ "}")
+  Lwt.return ("{ "^ sl ^ "},\n")
       
   
     
