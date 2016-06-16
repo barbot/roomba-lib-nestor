@@ -176,7 +176,7 @@ let get_state_action () =
     (*(fun c (n,v) -> Printf.sprintf " \"%s\":\"%s\",%s" n v c) ("\"time\":"^time)*)
     (fun c (_,v) -> Printf.sprintf " \"%s\",%s" v c) time 
     (Type_def.print_list ~prfun:csv_print rs) in
-  Lwt.return ("{ "^ sl ^ "},\n")
+  Lwt.return (sl ^ "\n")
       
   
     
