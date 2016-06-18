@@ -58,18 +58,15 @@ let close () =
     )
        
     
-let sleep_thread () =
-  while true do
-    Unix.sleep 10;
-    if not !silentconn then Unix.sleep 120;
-    if !synchronized then Unix.sleep 1200;
-    match !ro with
-      None -> ()
-    | Some cro when not !alive -> close ()      
-    | _ -> alive := false
-  done;
-  Lwt.return ()
-  
+let rec sleep_thread () =
+  let%lwt _ = Lwt_unix.sleep 10.0 in
+  let%lwt _ = (if not !silentconn then Lwt_unix.sleep 120.0 else Lwt.return ()) in
+  let%lwt _ = (if !synchronized then Lwt_unix.sleep 1200.0 else Lwt.return ()) in
+  (match !ro with
+    None -> ()
+  | Some cro when not !alive -> close ();      
+  | _ -> alive := false);
+  sleep_thread ()
 
 let slth = Lwt.async sleep_thread 
     
