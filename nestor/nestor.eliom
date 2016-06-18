@@ -67,9 +67,11 @@ let sleep_thread () =
       None -> ()
     | Some cro when not !alive -> close ()      
     | _ -> alive := false
-  done
+  done;
+  Lwt.return ()
+  
 
-let slth = Lwt_preemptive.detach sleep_thread ()
+let slth = Lwt.async sleep_thread 
     
 let main_service =
   Eliom_service.App.service ~path:[] ~get_params:Eliom_parameter.unit ()
@@ -116,18 +118,22 @@ let action_handling action =
        ) static_pt ( Interface_local.get_state cro);
        
      | Synchronize -> if not !synchronized then begin
-       Interface_local.sync_state cro [1;2;3;43;44;45;106] (*[100]*);
-       Interface_local.change_callback cro (callbackfun
-			        ~cb:(fun x y r rs ->
-				  let time2 = Unix.gettimeofday () in		
-				if time2-. !time > 0.15 then begin
-				    time := time2;
-				    let sl = print_list rs in
-				    ignore @@ Eliom_bus.write bus (x,y,r,sl)
-				end) static_pt);
-       output_string !lcd "Synchronized\n";
-       flush !lcd;
-       synchronized := true
+       (try 
+	 Interface_local.sync_state cro [1;2;3;43;44;45;106]; (*[100]*)
+       with
+	 Type_def.Upstream_in_use -> ()
+       );
+	 Interface_local.change_callback cro (callbackfun
+						~cb:(fun x y r rs ->
+						  let time2 = Unix.gettimeofday () in		
+						  if time2-. !time > 0.15 then begin
+						    time := time2;
+						    let sl = print_list rs in
+						    ignore @@ Eliom_bus.write bus (x,y,r,sl)
+						  end) static_pt);
+	   output_string !lcd "Synchronized\n";
+	   flush !lcd;
+	   synchronized := true
      end
      | Stop_syn -> Interface_local.stop_sync cro;
        synchronized := false;
@@ -395,7 +401,7 @@ let init_client () =
   
   let handle_msg ctx (xf,yf,r,sl) =
     begin match !poslist with
-      (x,y,rl)::_ when (abs_float (x -. xf)) +. (abs_float (y -. yf)) +. (abs_float (r -. rl))
+      (x,y,rl)::_ when (abs_float (x -. xf)) +. (abs_float (y -. yf)) +. (70.0*.(abs_float (r -. rl)))
 	  > 10.0 ->
 	poslist := (xf,yf,r)::(!poslist)
     | [] -> poslist := [(xf,yf,r)]
@@ -437,7 +443,7 @@ let init_client () =
     drawb ();
     Lwt.return ()
   in
-    
+  
   Lwt.async (fun () ->
     let open Lwt_js_events in
     mousedowns canvas
@@ -445,8 +451,8 @@ let init_client () =
 	xmouse := ev##.clientX;
 	ymouse := ev##.clientY;
         Lwt.pick
-          [mousemoves Dom_html.document (fun x _ -> translate x);
-	   mouseup Dom_html.document >>= translate]));
+          [mousemoves canvas (fun x _ -> translate x);
+	   mouseup canvas >>= translate]));
     
   Lwt.async (fun () -> Lwt_stream.iter (handle_msg ctx) (Eliom_bus.stream ~%bus));
 
