@@ -1,4 +1,11 @@
 (** This Module describe the state of the sensor of the Roomba*)
+
+val ( |>> ) : 'a option -> ('a -> 'b option) -> 'b option
+val ( |>>> ) : 'a option -> ('a -> 'b) -> 'b option
+val ( |>>| ) : 'a option -> 'a -> 'a
+val ( |< ) : 'a -> ('a -> unit) -> 'a
+val ( |<>| ) : ('a -> 'b -> 'c) -> 'a * 'b -> 'c
+
 type smooth_value
 
 type roomba_state = {

@@ -41,6 +41,7 @@ let synchronized = ref false
 let isActive = ref false
 let lcd = ref stdout
 let silentconn = ref false
+let isDrivingForward = ref false
   
 let close () =
    match !ro with
@@ -55,6 +56,7 @@ let close () =
       ro := None;
       ignore @@ Unix.close_process_out !lcd;
       silentconn := false;
+      isDrivingForward := false;
     )
        
     
@@ -120,17 +122,21 @@ let action_handling action =
        with
 	 Type_def.Upstream_in_use -> ()
        );
-	 Interface_local.change_callback cro (callbackfun
-						~cb:(fun x y r rs ->
-						  let time2 = Unix.gettimeofday () in		
-						  if time2-. !time > 0.15 then begin
-						    time := time2;
-						    let sl = print_list rs in
-						    ignore @@ Eliom_bus.write bus (x,y,r,sl)
-						  end) static_pt);
-	   output_string !lcd "Synchronized\n";
-	   flush !lcd;
-	   synchronized := true
+       Interface_local.change_callback cro (
+	 callbackfun
+	   ~cb:(fun x y r rs ->
+	     if (rs.bumpsWheeldrops |>>| 0) > 0
+	       && !isDrivingForward then
+	       Interface_local.roomba_cmd cro (Drive (0,0));
+	     let time2 = Unix.gettimeofday () in		
+	     if time2-. !time > 0.15 then begin
+	       time := time2;
+	       let sl = print_list rs in
+	       ignore @@ Eliom_bus.write bus (x,y,r,sl)
+	     end) static_pt);
+       output_string !lcd "Synchronized\n";
+       flush !lcd;
+       synchronized := true
      end
      | Stop_syn -> Interface_local.stop_sync cro;
        synchronized := false;
@@ -144,15 +150,22 @@ let action_handling action =
      | Power -> Interface_local.roomba_cmd cro Power
      | Max -> Interface_local.roomba_cmd cro Max;
        isActive := false;
+       isDrivingForward := false;
 	
      | Spot -> Interface_local.roomba_cmd cro Spot;
-	isActive := false;
+       isActive := false;
+       isDrivingForward := false;
+       
      | Clean -> Interface_local.roomba_cmd cro Clean;
        isActive := false;
+       isDrivingForward := false;
+       
      | Dock -> Interface_local.roomba_cmd cro Dock;
        isActive := false;
+       isDrivingForward := false;
 	
-     | Move(x,y) -> Interface_local.roomba_cmd cro (Drive (x,y))
+     | Move(x,y) -> Interface_local.roomba_cmd cro (Drive (x,y));
+       isDrivingForward :=  x > 0 && ( y <> -1 || y <> 1) 
      end;
   end;
   Lwt.return unit

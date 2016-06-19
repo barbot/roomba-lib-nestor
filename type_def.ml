@@ -1,10 +1,18 @@
-let (|>>) x f = match x with
+
+let (|>>) x f = match x with 
     Some y -> f y
   | None -> None
 
-let (|>>>) x f = match x with
-    Some y -> Some (f y)
+let (|>>>) x f = match x with 
+    Some y -> begin try Some (f y) with _ -> None end
   | None -> None
+
+let (|>>|) x v = match x with
+    Some y -> y
+  | None -> v
+
+let (|<) x f = let () = f x in x
+let (|<>|) f (x,y) = f x y
 
 type smooth_value = {
   mutable lightBumpLeftSm : float;
