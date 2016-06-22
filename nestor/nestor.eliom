@@ -165,7 +165,7 @@ let action_handling action =
        isDrivingForward := false;
 	
      | Move(x,y) -> Interface_local.roomba_cmd cro (Drive (x,y));
-       isDrivingForward :=  x > 0 && ( y <> -1 || y <> 1) 
+       isDrivingForward :=  x <> 0 && ( y <> -1 || y <> 1) 
      end;
   end;
   Lwt.return unit
