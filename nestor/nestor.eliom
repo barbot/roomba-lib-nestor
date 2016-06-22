@@ -126,8 +126,10 @@ let action_handling action =
 	 callbackfun
 	   ~cb:(fun x y r rs ->
 	     if (rs.bumpsWheeldrops |>>| 0) > 0
-	       && !isDrivingForward then
+	       && !isDrivingForward then (
 	       Interface_local.roomba_cmd cro (Drive (0,0));
+		 isDrivingForward := false;
+	       );
 	     let time2 = Unix.gettimeofday () in		
 	     if time2-. !time > 0.15 then begin
 	       time := time2;
@@ -165,7 +167,7 @@ let action_handling action =
        isDrivingForward := false;
 	
      | Move(x,y) -> Interface_local.roomba_cmd cro (Drive (x,y));
-       isDrivingForward :=  x <> 0 && ( y <> -1 || y <> 1) 
+       isDrivingForward :=  x > 0 && ( y <> -1 || y <> 1) 
      end;
   end;
   Lwt.return unit
