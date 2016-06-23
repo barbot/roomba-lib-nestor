@@ -130,7 +130,7 @@ let action_handling action =
 	       Interface_local.roomba_cmd cro (Drive (0,0));
 		 isDrivingForward := false;
 	       );
-	     isActive := rs.bumpsWheeldrops |>>> (fun i -> i>=2) |>>| false;
+	     isActive := rs.oiMode |>>> (fun i -> i>=2) |>>| false;
 	     let time2 = Unix.gettimeofday () in		
 	     if time2-. !time > 0.15 then begin
 	       time := time2;
