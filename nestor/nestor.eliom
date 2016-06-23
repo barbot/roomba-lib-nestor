@@ -118,7 +118,7 @@ let action_handling action =
        
      | Synchronize -> if not !synchronized then begin
        (try 
-	 Interface_local.sync_state cro [1;2;3;43;44;45;106]; (*[100]*)
+	 Interface_local.sync_state cro [1;2;3;35;43;44;45;106]; (*[100]*)
        with
 	 Type_def.Upstream_in_use -> ()
        );
@@ -130,6 +130,7 @@ let action_handling action =
 	       Interface_local.roomba_cmd cro (Drive (0,0));
 		 isDrivingForward := false;
 	       );
+	     isActive := rs.bumpsWheeldrops |>>> (fun i -> i>=2) |>>| false;
 	     let time2 = Unix.gettimeofday () in		
 	     if time2-. !time > 0.15 then begin
 	       time := time2;

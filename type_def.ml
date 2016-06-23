@@ -159,6 +159,13 @@ let print_io = function
   | 1 -> "Passive"
   | 2 -> "Safe"
   | 3 -> "Full"
+
+let print_bump i =
+  ""
+  |> (fun x -> if i mod 2 =1 then x^", Bump Right" else x)
+  |> (fun x -> if (i lsr 1) mod 2 =1 then x^", Bump Left" else x)
+  |> (fun x -> if (i lsr 2) mod 2 =1 then x^", Drop Right" else x)
+  |> (fun x -> if (i lsr 3) mod 2 =1 then x^", Drop Left" else x)
      
 let print_ioption ?unit:(u="") i = (string_of_int i)^u
 let print_boption ?unit:(u="") b = (string_of_bool b)^u
@@ -178,7 +185,7 @@ let print_list ?prfun:(printfun=fun label x l -> match x with Some y -> (label,y
     printfun label (op |>>> fp) l in
   List.fold_left (fun x y -> y x) []
   [
-  f print_ioption "bumps Wheel drops" r.bumpsWheeldrops;
+  f (print_soption print_bump) "bumps Wheel drops" r.bumpsWheeldrops;
   f print_boption "wall" r.wall;
   f print_boption "cliff left" r.cliffLeft;
   f print_boption "cliff front left" r.cliffFrontLeft;
