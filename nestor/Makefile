@@ -29,7 +29,7 @@ export ELIOM_CLIENT_DIR := _client
 export ELIOM_TYPE_DIR   := _server
 DEPSDIR := _deps
 
-ifeq ($(DEBUG),yes)
+ifeq ($(DEBUG),no)
   GENERATE_DEBUG ?= -g
   RUN_DEBUG ?= "-v"
   DEBUG_JS ?= -jsopt -pretty -jsopt -noinline -jsopt -debuginfo
