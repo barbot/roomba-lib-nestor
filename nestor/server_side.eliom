@@ -107,13 +107,14 @@ let action_handling action =
      let open Distance in
      begin match action with
      | Refresh | Wakeup ->
-	if not !synchronized then
+	if not !synchronized then (
 	  Interface_local.query_list cro (*[1;2;3;4;5;101]*) [100];
-        callbackfun ~cb:(fun x y r rs ->
-	 let sl = print_list rs in
-	 ignore @@ Eliom_bus.write bus (x,y,r,sl)
-       ) static_pt ( Interface_local.get_state cro);
-       
+          callbackfun ~cb:(fun x y r rs ->
+	    let sl = print_list rs in
+	    ignore @@ Eliom_bus.write bus (x,y,r,sl)
+	  ) static_pt (Interface_local.get_state cro)
+	);
+	  
      | Synchronize -> if not !synchronized then begin
        (try 
 	 Interface_local.sync_state cro [1;2;3;35;43;44;45;106]; (*[100]*)

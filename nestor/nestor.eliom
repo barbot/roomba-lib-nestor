@@ -224,9 +224,11 @@ let init_client () =
   
   let handle_msg ctx (xf,yf,r,sl) =
     begin match !poslist with
-      (x,y,rl)::_ when (abs_float (x -. xf)) +. (abs_float (y -. yf)) +. (70.0*.(abs_float (r -. rl)))
-	  > 10.0 ->
-	poslist := (xf,yf,r)::(!poslist)
+      (x,y,rl)::_ when
+	  (abs_float (x -. xf))
+	  +. (abs_float (y -. yf))
+	  +. (70.0*.(abs_float (r -. rl))) > 10.0 ->
+	    poslist := (xf,yf,r)::(!poslist)
     | [] -> poslist := [(xf,yf,r)]
     | _ -> ()
     end;
