@@ -5,7 +5,8 @@
 
   type order =
       Wakeup | Refresh | Close | Synchronize | Stop_syn
-    | Safe | Move of int*int
+    | Safe
+    | Move of int*int | Motor of int
     | Clean | Power | Spot | Max | Dock
 	[@@deriving json]
 
@@ -170,7 +171,10 @@ let action_handling action =
        isDrivingForward := false;
 	
      | Move(x,y) -> Interface_local.roomba_cmd cro (Drive (x,y));
-       isDrivingForward :=  x > 0 && ( y <> -1 || y <> 1) 
+       isDrivingForward :=  x > 0 && ( y <> -1 || y <> 1)
+	 
+     | Motor(v) -> Interface_local.roomba_cmd cro (Type_def.Motors (v));
+
      end;
   end;
   Lwt.return unit
