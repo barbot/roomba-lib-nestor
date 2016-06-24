@@ -276,8 +276,8 @@ let init_client () =
 	xmouse := ev##.clientX;
 	ymouse := ev##.clientY;
         Lwt.pick
-          [mousemoves canvas (fun x _ -> translate x);
-	   mouseup canvas >>= translate]));
+          [mousemoves Dom_html.document (fun x _ -> translate x);
+	   mouseup Dom_html.document >>= translate]));
     
   Lwt.async (fun () -> Lwt_stream.iter (handle_msg ctx) (Eliom_bus.stream ~%bus));
 
@@ -301,6 +301,9 @@ let skeletton () =
 	       canvas_elt ; br ();
 	       button ~a:[a_onclick [%client fun _ -> (scale := !scale /. 1.2; drawb ()) ]] [pcdata "-";];
 	       button ~a:[a_onclick [%client fun _ -> (scale := 1.2*. !scale; drawb ()) ]] [pcdata "+";];
+	       button ~a:[a_onclick [%client fun _ -> (poslist := []; drawb ()) ]] [pcdata "clear";];
+		 
+		 
 	     ]);
 	     sensor_div ;
 	   (* div ~a:[a_class ["sensor"]] [ul sensorval] ;*)

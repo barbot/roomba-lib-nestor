@@ -143,7 +143,10 @@ let action_handling action =
      | Stop_syn -> Interface_local.stop_sync cro;
        synchronized := false;
        output_string !lcd "Connected\n";
-       flush !lcd
+       flush !lcd;
+       ignore @@ Unix.select [] [] [] 0.1;
+       Interface_local.clear_input cro;
+       
      | Safe -> Interface_local.roomba_cmd cro Safe;
        isActive := true;
 	
