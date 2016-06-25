@@ -8,6 +8,7 @@
     | Safe
     | Move of int*int | Motor of int
     | Clean | Power | Spot | Max | Dock
+    | Explore 
 	[@@deriving json]
 
   type server_state =
@@ -25,6 +26,7 @@
 
 open Eliom_lib
 open Eliom_parameter
+open Exploration
 
 let bus = Eliom_bus.create [%derive.json: messages]
   
@@ -82,11 +84,28 @@ let get_state () =
     None -> Lwt.return Disconnected
   | Some _ when !synchronized -> Lwt.return @@ Synchronized !isActive
   | _ -> Lwt.return @@ Connected !isActive
-     
+
+let time = ref 0.0      
+let callbackserv cro =
+  let open Type_def in
+  let open Distance in
+  callbackfun
+	   ~cb:(fun x y r rs ->
+	     if (rs.bumpsWheeldrops |>>| 0) > 0
+	       && !isDrivingForward then (
+	       Interface_local.roomba_cmd cro (Drive (0,0));
+		 isDrivingForward := false;
+	       );
+	     isActive := rs.oiMode |>>> (fun i -> i>=2) |>>| false;
+	     let time2 = Unix.gettimeofday () in		
+	     if time2-. !time > 0.15 then begin
+	       time := time2;
+	       let sl = print_list rs in
+	       ignore @@ Eliom_bus.write bus (x,y,r,sl)
+	     end) static_pt 
      
 let action_handling action =
   alive := true;
-  let time = ref 0.0 in
   begin match !ro with
   | None -> 
      begin if action= Wakeup then begin
@@ -110,10 +129,7 @@ let action_handling action =
      | Refresh | Wakeup ->
 	if not !synchronized then (
 	  Interface_local.query_list cro (*[1;2;3;4;5;101]*) [100];
-          callbackfun ~cb:(fun x y r rs ->
-	    let sl = print_list rs in
-	    ignore @@ Eliom_bus.write bus (x,y,r,sl)
-	  ) static_pt (Interface_local.get_state cro)
+          callbackserv cro (Interface_local.get_state cro)
 	);
 	  
      | Synchronize -> if not !synchronized then begin
@@ -122,21 +138,7 @@ let action_handling action =
        with
 	 Type_def.Upstream_in_use -> ()
        );
-       Interface_local.change_callback cro (
-	 callbackfun
-	   ~cb:(fun x y r rs ->
-	     if (rs.bumpsWheeldrops |>>| 0) > 0
-	       && !isDrivingForward then (
-	       Interface_local.roomba_cmd cro (Drive (0,0));
-		 isDrivingForward := false;
-	       );
-	     isActive := rs.oiMode |>>> (fun i -> i>=2) |>>| false;
-	     let time2 = Unix.gettimeofday () in		
-	     if time2-. !time > 0.15 then begin
-	       time := time2;
-	       let sl = print_list rs in
-	       ignore @@ Eliom_bus.write bus (x,y,r,sl)
-	     end) static_pt);
+       Interface_local.change_callback cro (callbackserv cro);
        output_string !lcd "Synchronized\n";
        flush !lcd;
        synchronized := true
@@ -147,6 +149,9 @@ let action_handling action =
        flush !lcd;
        ignore @@ Unix.select [] [] [] 0.1;
        Interface_local.clear_input cro;
+
+     | Explore ->
+	Exploration.start_exploration cro (callbackserv cro)
        
      | Safe -> Interface_local.roomba_cmd cro Safe;
        isActive := true;

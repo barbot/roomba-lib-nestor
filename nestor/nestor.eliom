@@ -63,11 +63,11 @@ let action_service_ro f = function (*match Connected true with*)
       td [action_button f (fun s ->Move(s,1)) "<"];
       td [action_button f (fun _ ->Move(0,0)) "o"];
       td [action_button f (fun s ->Move(s,-1)) ">"];
-      td [action_button f (fun _->Motor 7) "BrushOff"]; td [action_button f (fun _ ->Clean) "clean"];
+      td [action_button f (fun _->Motor 0) "BrushOff"]; td [action_button f (fun _ ->Clean) "clean"];
       td [action_button f (fun _ ->Close) "close"];
     ];
     tr [ td [];td [action_button f (fun s ->Move(-s,0)) "v"];
-	 td []; td [];td [action_button f (fun _->Dock) "dock"];
+	 td []; td [action_button f (fun _->Explore) "Explore"];td [action_button f (fun _->Dock) "dock"];
 	 td [action_button f (fun _->Synchronize) "synchronize"];
        ];
     tr [ td ~a:[a_colspan 4] [ speed_slider ];
