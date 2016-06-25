@@ -134,7 +134,7 @@ let action_handling action =
 	  
      | Synchronize -> if not !synchronized then begin
        (try 
-	 Interface_local.sync_state cro [1;2;3;35;43;44;45;106]; (*[100]*)
+	 Interface_local.sync_state cro [0;35;43;44;45;106]; (*[100]*)
        with
 	 Type_def.Upstream_in_use -> ()
        );
