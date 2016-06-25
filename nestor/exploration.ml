@@ -2,7 +2,7 @@ open Type_def
 open Interface_local
 open SmoothMovement
 
-let explore = ref false
+let explore = ref true
 let joystick = ref false
 let ams = ref false
 
@@ -24,6 +24,7 @@ let start_exploration nestor cb =
   let nestor_consigne = start_consigne nestor in
 
   let changestate ro s =
+    print_endline (string_of_state s);
     if !innerstate = s then () 
     else begin
       innerstate := s;
