@@ -101,7 +101,8 @@ let callbackserv cro =
 	     if time2-. !time > 0.15 then begin
 	       time := time2;
 	       let sl = print_list rs in
-	       ignore @@ Eliom_bus.write bus (x,y,r,sl)
+	       let sl2 = ("Exploration State", Exploration.string_of_state !Exploration.innerstate)::sl in
+	       ignore @@ Eliom_bus.write bus (x,y,r,sl2)
 	     end) static_pt 
      
 let action_handling action =
