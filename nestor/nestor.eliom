@@ -18,11 +18,76 @@ let%shared height = 400
 let canvas_elt =
   canvas ~a:[a_width width; a_height height;]
     [pcdata "your browser doesn't support canvas"]
+let canvas_graph =
+  canvas ~a:[a_width 510; a_height 210;]
+     [pcdata "your browser doesn't support canvas"]
 let sensor_div =
   div ~a:[ a_class ["sensorlistdiv"] ] [ul ~a:[a_id "sensorlist"] [li [pcdata "No data"]]]
 let%shared button_div =
   div ~a:[ a_class ["buttondiv"]] [table ~a:[a_id "buttonid"] [] ]
 
+
+
+let rec next_val p1 s =
+  try
+    let p2 = String.index_from s (p1+1) ',' in
+    (String.sub s (p1+1) (p2-p1-1))::(next_val p2 s)
+  with Not_found -> [String.sub s (p1+1) (String.length s -p1-1)]
+
+let match_end s2 s1 =
+  let n1 = String.length s1
+  and n2 = String.length s2 in
+  if n1 >= n2 then
+    if (String.sub s1 (n1-n2) n2) = s2 then
+      String.sub s1 0 (n1-n2)
+    else s1
+  else s1
+    
+let clean s =
+  let s2 = String.trim s in
+  if s2 <> "" then
+    let s3 = (if String.get s2 0 = '"' && String.get s2 (String.length s2 -1) = '"' then
+	String.sub s2 1 (String.length s2 -2) else s2) in
+    s3
+  |> match_end "mAh"
+  |> match_end "mA"
+  |> match_end "mV"
+  |> match_end "°C"
+  else ""
+
+let select_line sl =
+  try
+    [ (float_of_string @@ List.nth sl 49);
+      (float_of_string @@ List.nth sl 15);
+      (float_of_string @@ List.nth sl 16);
+      (float_of_string @@ List.nth sl 17);
+      (float_of_string @@ List.nth sl 18);
+       ]
+      with _ -> []
+  
+
+let rec read_log_line f =
+  try 
+  let s = input_line f in
+  let logl = List.map clean @@
+    next_val 0 s in
+  (select_line logl) :: read_log_line f
+  with End_of_file -> []
+   
+let get_log () =
+  let f = open_in "/home/pi/lognestor" in
+  let l = read_log_line f in
+  close_in f;
+  l;;
+    
+let all_log = get_log ()   
+    
+let log_charge = List.map (fun x -> List.hd x , List.nth x 4) all_log
+let log_tmp = List.map (fun x -> List.hd x , List.nth x 3) all_log
+let log_volt = List.map (fun x -> List.hd x , List.nth x 1) all_log
+let log_conso = List.map (fun x -> List.hd x , List.nth x 2) all_log
+
+    
 [%%client
 
  let speed_slider = Raw.input ~a:[a_id "speedid";
@@ -191,12 +256,45 @@ let drawb () =
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
   draw_all (canvas##(getContext (Dom_html._2d_)))
 
+let bounding_box g =
+  List.fold_left (fun (xmin,xmax,ymin,ymax) (x,y)->
+    (min xmin x),(max xmax x),(min ymin y),(max ymax y))
+    (max_float,min_float,max_float,min_float)
+    g
+
+let normalize w h g =
+  let xmin,xmax,ymin,ymax = bounding_box g in
+  List.map (fun (x,y) ->
+     ((x-.xmin) /. (xmax-.xmin) *. float w),
+     ((ymax-.y) /. (ymax-.ymin) *. float h)) g
+    
+let draw_graph (r,v,b) canvas g =
+  if List.length g >0 then begin 
+  let ctx = canvas##(getContext (Dom_html._2d_)) in
+  let g2 = normalize 500 200 g in
+  ignore @@ List.fold_left (fun (x1,y1) (x2,y2) ->
+    let color = CSS.Color.string_of_t (CSS.Color.rgb r v b) in
+    ctx##.strokeStyle := (Js.string color);
+    ctx##.lineWidth := 3.0;
+    ctx##beginPath;
+    ctx##(moveTo x1 y1);
+    ctx##(lineTo x2 y2);
+    ctx##stroke;
+    (x2,y2))
+    (List.hd g2) g2
+  end
+
 let init_client () =
-  
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
   let sensors = Eliom_content.Html5.To_dom.of_div ~%sensor_div in
   let buttons = Eliom_content.Html5.To_dom.of_div ~%button_div in
   let ctx = canvas##(getContext (Dom_html._2d_)) in
+  let canvas_g =  Eliom_content.Html5.To_dom.of_canvas ~%canvas_graph in
+  
+  draw_graph (0,0,200) canvas_g ~%log_charge;
+  draw_graph  (200,0,0) canvas_g ~%log_tmp;
+  draw_graph  (0,0,0) canvas_g ~%log_volt;
+  draw_graph  (0,200,0) canvas_g ~%log_conso;
   (*ctx##.lineCap := Js.string "round";
   draw ctx ((0, 0, 0), 5, (0, 0), (width, 0));
   draw ctx ((0, 0, 0), 5, (width, 0), (width, height));
@@ -326,6 +424,7 @@ let skeletton () =
 			       ["img/DSC_0984.jpg"])
 		     () ;*)
 	     ];
+	     (div ~a:[a_class ["canvas"]] [canvas_graph;]);
            ]))
       
 let () =
