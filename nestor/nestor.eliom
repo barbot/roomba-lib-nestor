@@ -79,15 +79,9 @@ let get_log () =
   let l = read_log_line f in
   close_in f;
   l;;
-    
-let all_log = get_log ()   
-    
-let log_charge = List.map (fun x -> List.hd x , List.nth x 4) all_log
-let log_tmp = List.map (fun x -> List.hd x , List.nth x 3) all_log
-let log_volt = List.map (fun x -> List.hd x , List.nth x 1) all_log
-let log_conso = List.map (fun x -> List.hd x , List.nth x 2) all_log
 
-    
+let all_log = ref (get_log ())   
+       
 [%%client
 
  let speed_slider = Raw.input ~a:[a_id "speedid";
@@ -284,6 +278,11 @@ let draw_graph (r,v,b) canvas g =
     (List.hd g2) g2
   end
 
+let log_charge () = List.map (fun x -> List.hd x , List.nth x 4) !(~%all_log)
+let log_tmp () = List.map (fun x -> List.hd x , List.nth x 3) !(~%all_log)
+let log_volt () = List.map (fun x -> List.hd x , List.nth x 1) !(~%all_log)
+let log_conso () = List.map (fun x -> List.hd x , List.nth x 2) !(~%all_log)
+    
 let init_client () =
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
   let sensors = Eliom_content.Html5.To_dom.of_div ~%sensor_div in
@@ -291,10 +290,10 @@ let init_client () =
   let ctx = canvas##(getContext (Dom_html._2d_)) in
   let canvas_g =  Eliom_content.Html5.To_dom.of_canvas ~%canvas_graph in
   
-  draw_graph (0,0,200) canvas_g ~%log_charge;
-  draw_graph  (200,0,0) canvas_g ~%log_tmp;
-  draw_graph  (0,0,0) canvas_g ~%log_volt;
-  draw_graph  (0,200,0) canvas_g ~%log_conso;
+  draw_graph (0,0,200) canvas_g (log_charge ());
+  draw_graph  (200,0,0) canvas_g (log_tmp ());
+  draw_graph  (0,0,0) canvas_g (log_volt ());
+  draw_graph  (0,200,0) canvas_g (log_conso ());
   (*ctx##.lineCap := Js.string "round";
   draw ctx ((0, 0, 0), 5, (0, 0), (width, 0));
   draw ctx ((0, 0, 0), 5, (width, 0), (width, height));
@@ -391,6 +390,7 @@ let init_client () =
 ]
 
 let skeletton () =
+  all_log := get_log ();   
   Lwt.return
         (Eliom_tools.F.html
            ~title:"Nestor"
