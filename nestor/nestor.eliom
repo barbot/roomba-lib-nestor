@@ -19,13 +19,12 @@ let canvas_elt =
   canvas ~a:[a_width width; a_height height;]
     [pcdata "your browser doesn't support canvas"]
 let canvas_graph =
-  canvas ~a:[a_width 510; a_height 210;]
+  canvas ~a:[a_width 700; a_height 250;]
      [pcdata "your browser doesn't support canvas"]
 let sensor_div =
   div ~a:[ a_class ["sensorlistdiv"] ] [ul ~a:[a_id "sensorlist"] [li [pcdata "No data"]]]
 let%shared button_div =
   div ~a:[ a_class ["buttondiv"]] [table ~a:[a_id "buttonid"] [] ]
-
 
 
 let rec next_val p1 s =
@@ -256,32 +255,45 @@ let bounding_box g =
     (max_float,min_float,max_float,min_float)
     g
 
-let normalize w h g =
-  let xmin,xmax,ymin,ymax = bounding_box g in
+let normalize bb w h g =
+  let xmin,xmax,ymin,ymax = bb in
   List.map (fun (x,y) ->
      ((x-.xmin) /. (xmax-.xmin) *. float w),
      ((ymax-.y) /. (ymax-.ymin) *. float h)) g
+
+let dlines ctx g =
+  let dl (x1,y1) (x2,y2) = ctx##beginPath;
+    ctx##(moveTo x1 y1);
+    ctx##(lineTo x2 y2);
+    ctx##stroke in
+  ignore @@ List.fold_left (fun p1 p2 ->
+    dl p1 p2;
+    p2)
+    (List.hd g) g
     
 let draw_graph (r,v,b) canvas g =
   if List.length g >0 then begin 
-  let ctx = canvas##(getContext (Dom_html._2d_)) in
-  let g2 = normalize 500 200 g in
-  ignore @@ List.fold_left (fun (x1,y1) (x2,y2) ->
+    let ctx = canvas##(getContext (Dom_html._2d_)) in
+    let bb = bounding_box g in
+    let g2 = normalize bb 680 200 g in
     let color = CSS.Color.string_of_t (CSS.Color.rgb r v b) in
     ctx##.strokeStyle := (Js.string color);
     ctx##.lineWidth := 3.0;
-    ctx##beginPath;
-    ctx##(moveTo x1 y1);
-    ctx##(lineTo x2 y2);
-    ctx##stroke;
-    (x2,y2))
-    (List.hd g2) g2
+    dlines ctx g2;
+    let xmin,xmax,ymin,ymax = bb in
+    if ymin*.ymax < 0.0 then begin
+      ctx##.lineWidth := 1.0;
+      let g3 = normalize bb 680 200 [xmin,0.0; xmax,0.0] in
+      dlines ctx g3;
+    end
   end
 
 let log_charge () = List.map (fun x -> List.hd x , List.nth x 4) !(~%all_log)
 let log_tmp () = List.map (fun x -> List.hd x , List.nth x 3) !(~%all_log)
 let log_volt () = List.map (fun x -> List.hd x , List.nth x 1) !(~%all_log)
 let log_conso () = List.map (fun x -> List.hd x , List.nth x 2) !(~%all_log)
+let log_time () = let xmin,xmax,_,_ = bounding_box (log_charge ()) in
+		  let nj = (xmax -.xmin) /. 60.0 in () 
     
 let init_client () =
   let canvas = Eliom_content.Html5.To_dom.of_canvas ~%canvas_elt in
