@@ -55,7 +55,7 @@ let close () =
       isActive := false;
       Interface_local.close_roomba cro;
       ro := None;
-      ignore @@ Unix.close_process_out !lcd;
+      (*ignore @@ Unix.close_process_out !lcd;*)
       silentconn := false;
       isDrivingForward := false;
     )
@@ -115,9 +115,9 @@ let action_handling action =
 	 ro := Some (Unix.handle_unix_error Interface_local.init_roomba "/dev/ttyAMA0");
 	 isActive := false;
 	 if not !silentconn then (
-	   lcd := Unix.open_process_out "/usr/bin/python char_text.py";
-	   output_string !lcd "Connected\n";
-	   flush !lcd
+	   (*lcd := Unix.open_process_out "/usr/bin/python char_text.py";
+             output_string !lcd "Connected\n";
+	   flush !lcd*)
 	 )
        with _ -> Printf.fprintf stderr "fail to open Roomba"
      end;
@@ -140,14 +140,14 @@ let action_handling action =
 	 Type_def.Upstream_in_use -> ()
        );
        Interface_local.change_callback cro (callbackserv cro);
-       output_string !lcd "Synchronized\n";
-       flush !lcd;
+       (*output_string !lcd "Synchronized\n";
+       flush !lcd;*)
        synchronized := true
      end
      | Stop_syn -> Interface_local.stop_sync cro;
        synchronized := false;
-       output_string !lcd "Connected\n";
-       flush !lcd;
+       (*output_string !lcd "Connected\n";
+       flush !lcd;*)
        ignore @@ Unix.select [] [] [] 0.1;
        Interface_local.clear_input cro;
 
